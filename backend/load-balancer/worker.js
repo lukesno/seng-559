@@ -2,6 +2,7 @@ const http = require('http');
 
 // Create an HTTP server that responds with the current process ID
 http.createServer((req, res) => {
+    console.log('worker created')
     res.writeHead(200);
     res.end(`Hello from worker ${process.pid}\n`);
 }).listen(0, () => {
