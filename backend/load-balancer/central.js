@@ -1,41 +1,34 @@
 const http = require('http');
-const { fork } = require('child_process');
-const url = require('url');
 
-// Create an array of worker processes
-const workers = [];
+// List of backend servers
+const backendServers = [
+    { host: 'httpbin.org', port: 80 }
+];
 
-for (let i = 0; i < 1; i++) {
-    workers.push(fork('./server.js'));
-}
+let currentBackendIndex = 0;
 
-// Create a round-robin counter
-let counter = 0;
+const server = http.createServer((req, res) => {
+    const { host, port } = backendServers[currentBackendIndex];
+    const requestOptions = {
+        hostname: host,
+        port: port,
+        path: req.url,
+        method: req.method,
+        headers: req.headers
+    };
 
-const options = {
-
-}
-// Create the load balancer
-http.createServer(options,(req, res) => {
-    // Get the next worker process based on the round-robin counter
-    const worker = workers[counter];
-
-    // Increment the round-robin counter
-    counter = (counter + 1) % workers.length;
-
-    // Send the request to the worker process
-    // console.log(req)
-    const parsedUrl = url.parse(req.url, true);
-    console.log(parsedUrl)
-
-    worker.send({ path: parsedUrl.pathname })
-
-    // Set up a message listener to receive the response from the worker
-    worker.on('message', (message) => {
-        console.log('received message from worker');
-        res.writeHead(200);
-        res.end(message);
+    // Proxy the request to the selected backend server
+    const proxyReq = http.request(requestOptions, (proxyRes) => {
+        res.writeHead(proxyRes.statusCode, proxyRes.headers);
+        proxyRes.pipe(res, { end: true });
     });
-}).listen(8080);
+    req.pipe(proxyReq, { end: true });
 
-console.log('Load balancer running on port 8080');
+    // Cycle through backend servers
+    currentBackendIndex = (currentBackendIndex + 1) % backendServers.length;
+});
+
+const port = 8080;
+server.listen(port, () => {
+    console.log(`Load balancer running on port ${port}`);
+});
