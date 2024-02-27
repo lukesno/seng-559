@@ -1,25 +1,27 @@
+import admin from "firebase-admin";
 import express from "express";
 import cors from "cors";
+import serviceAccount from "./seng559-firebase-adminsdk-tddx2-61de37120d.json" assert { type: "json" };
 
-const PORT1 = 3001;
-const app1 = express();
-app1.use(cors());
-app1.use(express.json());
-app1.get("/", (req, res) => {
-  res.send(`Hello from server on port ${PORT1}`);
+const PORT = process.env.PORT || 3001;
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+const db = admin.firestore();
+
+app.post("/add", async (req, res) => {
+  const data = req.body;
+  console.log(data);
+  const docRef = await db.collection("data").add(data);
+  res.status(201).send(`Added ${data} to FireStore with ID ${docRef.id}`);
 });
 
-const PORT2 = 3002;
-const app2 = express();
-app2.use(cors());
-app2.use(express.json());
-app2.get("/", (req, res) => {
-  res.send(`Hello from server on port ${PORT2}`);
+app.get("/", (_, res) => {
+  res.status(200).send("Hello world!");
 });
 
-app1.listen(PORT1, () => {
-  console.log(`Server is running on port ${PORT1}`);
-});
-app2.listen(PORT2, () => {
-  console.log(`Server is running on port ${PORT2}`);
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });

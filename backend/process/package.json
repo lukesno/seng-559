@@ -4,14 +4,21 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon src/index.js",
+    "start:3001": "cross-env PORT=3001 nodemon src/index.js",
+    "start:3002": "cross-env PORT=3002 nodemon src/index.js",
+    "start:3003": "cross-env PORT=3003 nodemon src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
     "express": "^4.18.2",
-    "nodemon": "^3.1.0",
+    "firebase-admin": "^12.0.0",
     "socket.io": "^4.7.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
   }
 }
