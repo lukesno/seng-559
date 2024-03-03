@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import Axios from "axios";
 
-function WaitingScreen({roomID, users}) {
+function WaitingScreen({ roomID, users }) {
   const navigate = useNavigate(); // Initialize useNavigate
 
   const startGame = async () => {

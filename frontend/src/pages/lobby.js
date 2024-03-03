@@ -15,9 +15,9 @@ let socket = null;
 function Lobby() {
   const navigate = useNavigate(); // Initialize useNavigate
   const { username, roomID, roomURL } = useAppContext();
-  const [ lobbyState, setLobbyState ] = useState("waiting"); // Initial lobby state
-  const [ users, setUsers ] = useState([]);
-  const [ message, setMessage ] = useState("");
+  const [lobbyState, setLobbyState] = useState("waiting"); // Initial lobby state
+  const [users, setUsers] = useState([]);
+  const [message, setMessage] = useState("");
 
   const registerHandlers = () => {
     socket?.on("connect", () => {
@@ -27,30 +27,34 @@ function Lobby() {
       setUsers(users);
     });
     socket?.on("message", (args) => {
-      const {username, message} = args;
-      console.log(`${username}: ${message}`)
+      const { username, message } = args;
+      console.log(`${username}: ${message}`);
     });
   };
 
   useEffect(() => {
+    // Go back to home page if there is no URL (happens on refresh)
+    if (roomURL === "") {
+      navigate("/");
+    }
+
     socket = io(roomURL);
     registerHandlers();
-    socket.emit("joinGame", { id: roomID, username });
+    socket.emit("joinGame", { roomID, username });
 
     return () => {
-      socket.emit("leaveGame", { id: roomID, username });
       socket.disconnect();
-    }
+    };
   }, []); // Empty dependency array ensures the effect runs only once when the component mounts
 
   const sendMessage = async () => {
-    socket.emit("message", { id: roomID, username, message });
+    socket.emit("message", { roomID, username, message });
   };
 
   const renderLobbyComponent = () => {
     switch (lobbyState) {
       case "waiting":
-        return <WaitingScreen roomID={roomID} users={users}/>;
+        return <WaitingScreen roomID={roomID} users={users} />;
       case "asking":
         return <AskingScreen />;
       case "voting":

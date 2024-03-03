@@ -5,16 +5,17 @@ import { useAppContext } from "../AppContext";
 
 function Home() {
   const navigate = useNavigate(); // Initialize useNavigate
-  const { username, setUsername, roomID, setRoomID, setRoomURL } = useAppContext();
+  const { username, setUsername, roomID, setRoomID, setRoomURL } =
+    useAppContext();
   const [error, setError] = useState("");
 
   const create = async () => {
     try {
       const response = await Axios.get("http://localhost:8080/create");
-      const { url, id } = response.data;
-      setRoomID(id);
+      const { url, roomID } = response.data;
+      setRoomID(roomID);
       setRoomURL(url);
-      navigate(`lobby/${id}`);
+      navigate(`lobby/${roomID}`);
     } catch (error) {
       console.error("Error creating room: ", error);
     }
@@ -23,13 +24,12 @@ function Home() {
   const join = async () => {
     try {
       const response = await Axios.post("http://localhost:8080/join", {
-        id: roomID,
+        roomID,
       });
-      const { url, id } = response.data;
+      const { url } = response.data;
       console.log(response.data);
-      setRoomID(id);
       setRoomURL(url);
-      navigate(`lobby/${id}`);
+      navigate(`lobby/${roomID}`);
     } catch (error) {
       if (error.response && error.response.status === 404) {
         setError("Room not found");
