@@ -36,6 +36,11 @@ function Lobby() {
     socket = io(roomURL);
     registerHandlers();
     socket.emit("joinGame", { id: roomID, username });
+
+    return () => {
+      socket.emit("leaveGame", { id: roomID, username });
+      socket.disconnect();
+    }
   }, []); // Empty dependency array ensures the effect runs only once when the component mounts
 
   const sendMessage = async () => {

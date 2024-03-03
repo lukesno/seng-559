@@ -52,20 +52,28 @@ app.post("/join", (req, res) => {
 })
 
 io.on("connection", (socket) => {  
-  socket.on("joinGame", async (args) => {
+  socket.on("joinGame", (args) => {
     const {id, username} = args;
     games[id].users.push(username);
     socket.join(id);
     io.to(id).emit("userUpdate", games[id].users);
-
+    
     console.log(`${username} joined room ${id}`);
   })
-
+  
+  socket.on("leaveGame", (args) => {
+    const {id, username} = args;
+    games[id].users = games[id].users.filter(user => user != username);
+    io.to(id).emit("userUpdate", games[id].users);
+    
+    console.log(`${username} left room ${id}`);
+  })
+  
   socket.on("disconnect", ()=> {
     console.log(`${socket.id} disconnected`);
   })
   
-  socket.on("message", async (args) => {
+  socket.on("message", (args) => {
     const {id, username, message} = args;
     io.to(id).emit("message", {username, message});
 
