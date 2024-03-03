@@ -2,7 +2,6 @@ import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 //pages
-import Nav from "./nav";
 import Home from "./pages/home";
 import Lobby from "./pages/lobby";
 
