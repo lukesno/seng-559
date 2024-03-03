@@ -23,8 +23,8 @@ const io = new Server(server, {
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
 
-const games = {}; // game dictionary roomID: {url, roomID, users}
-const users = []; // list of all users {username, socketID, gameID}
+const games = {}; // roomID: {url, roomID, users}
+const users = {}; // socketID: {username, gameID}
 
 app.get("/create", (_, res) => {
   const roomID = nanoid();
@@ -56,17 +56,16 @@ const emitUsers = (roomID) => {
 };
 
 io.on("connection", (socket) => {
-  console.log(`${socket.roomID} connected`);
+  console.log(`${socket.id} connected`);
 
   socket.on("joinGame", (args) => {
     const { roomID, username } = args;
     const user = {
       username: username,
-      socketID: socket.roomID,
       roomID: roomID,
     };
 
-    users.push(user);
+    users[socket.id] = user;
     games[roomID].users.push(user);
     socket.join(roomID);
     emitUsers(roomID);
@@ -81,18 +80,17 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log(`${socket.roomID} disconnected`);
+    console.log(`${socket.id} disconnected`);
 
-    users.forEach((user) => {
-      if (user.socketID == socket.roomID) {
-        const roomID = user.roomID;
-        games[roomID].users = games[roomID].users.filter(
-          (user) => user.socketID != socket.roomID
-        );
-        emitUsers(roomID);
-        console.log(`${user} left room ${roomID}`);
-      }
-    });
+    const disconnectUser = users[socket.id];
+    const roomID = disconnectUser.roomID;
+
+    delete users[socket.id];
+    games[roomID].users = games[roomID].users.filter(
+      (gameUser) => gameUser.username != disconnectUser.username
+    );
+    emitUsers(roomID);
+    console.log(`${disconnectUser.username} left room ${roomID}`);
   });
 });
 
