@@ -4,10 +4,11 @@ import cors from "cors";
 import http from "http";
 import serviceAccount from "./seng559-firebase-adminsdk-tddx2-cbed457917.json" assert { type: "json" };
 import { Server } from "socket.io";
-import { nanoid } from "nanoid"
+import { customAlphabet } from "nanoid"
 
 const URL = "http://localhost";
 const PORT = process.env.PORT || 3001;
+const nanoid = customAlphabet("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ", 4);
 
 const app = express();
 app.use(cors());
@@ -29,7 +30,7 @@ app.get("/", (_, res) => {
 })
 
 app.get("/create", (_, res) => {
-  const id = nanoid(4);
+  const id = nanoid();
   const newGame = {
     url: `${URL}:${PORT}`,
     id: id,
@@ -54,26 +55,21 @@ io.on("connection", (socket) => {
   socket.on("joinGame", async (args) => {
     const {id, username} = args;
     games[id].users.push(username);
-    console.log(`${username} joined room ${id}`);
-
     socket.join(id);
     io.to(id).emit("userUpdate", games[id].users);
 
-    const sockets = await io.in(id).allSockets();
-    const socketIds = Array.from(sockets);
-    console.log(`Sockets in ${id}:`, socketIds);
-    return socketIds; // This is an array of socket IDs
+    console.log(`${username} joined room ${id}`);
+  })
+
+  socket.on("disconnect", ()=> {
+    console.log(`${socket.id} disconnected`);
   })
   
   socket.on("message", async (args) => {
-    const {id, message} = args;
-    console.log(args);
-    io.to(id).emit("message", message);
+    const {id, username, message} = args;
+    io.to(id).emit("message", {username, message});
 
-    const sockets = await io.in(id).allSockets();
-    const socketIds = Array.from(sockets);
-    console.log(`Sockets in ${id}:`, socketIds);
-    return socketIds; // This is an array of socket IDs
+    console.log(`${username} sent ${message} to ${id}`);
   })
 });
 
