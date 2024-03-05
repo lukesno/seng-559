@@ -2,7 +2,6 @@ import admin from "firebase-admin";
 import express from "express";
 import cors from "cors";
 import http from "http";
-import serviceAccount from "./seng559-firebase-adminsdk-tddx2-cbed457917.json" assert { type: "json" };
 import { Server } from "socket.io";
 import { customAlphabet } from "nanoid";
 
@@ -23,15 +22,15 @@ const io = new Server(server, {
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
 
-const games = {}; // roomID: {roomID, url, users}
-const users = {}; // socketID: {socketID, username, roomID, isLeader}
+const games = {}; // roomID: {roomID, url, sockets }
+const users = {}; // socketID: {username, roomID, isLeader}
 
 app.get("/create", (_, res) => {
   const roomID = nanoid();
   const newGame = {
     roomID: roomID,
     url: `${URL}:${PORT}`,
-    users: [],
+    sockets: [],
   };
 
   games[roomID] = newGame;
@@ -51,7 +50,7 @@ app.post("/join", (req, res) => {
 const emitUsers = (roomID) => {
   io.to(roomID).emit(
     "userUpdate",
-    games[roomID].users.map((user) => user.username)
+    games[roomID].sockets.map((socket) => users[socket].username)
   );
 };
 
@@ -60,16 +59,15 @@ io.on("connection", (socket) => {
 
   socket.on("joinGame", (args) => {
     const { roomID, username } = args;
-    const isLeader = games[roomID].users.length === 0;
+    const isLeader = games[roomID].sockets.length === 0;
     const user = {
-      socketID: socket.id,
       username: username,
       roomID: roomID,
       isLeader: isLeader,
     };
 
     users[socket.id] = user;
-    games[roomID].users.push(user);
+    games[roomID].sockets.push(socket.id);
     socket.join(roomID);
 
     if (isLeader) {
@@ -97,18 +95,18 @@ io.on("connection", (socket) => {
     console.log(`${disconnectUser.username} left room ${roomID}`);
 
     delete users[socket.id];
-    if (games[roomID].users.length === 1) {
+    if (games[roomID].sockets.length === 1) {
       delete games[roomID];
       return;
     }
 
-    games[roomID].users = games[roomID].users.filter(
-      (gameUser) => gameUser.username != disconnectUser.username
+    games[roomID].sockets = games[roomID].sockets.filter(
+      (gameUserSocketID) => gameUserSocketID != socket.id
     );
 
     // if disconnecting user is leader, change leader
     if (disconnectUser.isLeader) {
-      const newLeaderID = games[roomID].users[0].socketID;
+      const newLeaderID = games[roomID].sockets[0];
       users[newLeaderID].isLeader = true;
       io.to(newLeaderID).emit("leader", true);
     }
