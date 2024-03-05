@@ -23,14 +23,14 @@ const io = new Server(server, {
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
 
-const games = {}; // roomID: {url, roomID, users}
-const users = {}; // socketID: {username, gameID}
+const games = {}; // roomID: {roomID, url, users}
+const users = {}; // socketID: {socketID, username, roomID, isLeader}
 
 app.get("/create", (_, res) => {
   const roomID = nanoid();
   const newGame = {
-    url: `${URL}:${PORT}`,
     roomID: roomID,
+    url: `${URL}:${PORT}`,
     users: [],
   };
 
@@ -60,14 +60,21 @@ io.on("connection", (socket) => {
 
   socket.on("joinGame", (args) => {
     const { roomID, username } = args;
+    const isLeader = games[roomID].users.length === 0;
     const user = {
+      socketID: socket.id,
       username: username,
       roomID: roomID,
+      isLeader: isLeader,
     };
 
     users[socket.id] = user;
     games[roomID].users.push(user);
     socket.join(roomID);
+
+    if (isLeader) {
+      io.to(socket.id).emit("leader", isLeader);
+    }
     emitUsers(roomID);
     console.log(`${username} joined room ${roomID}`);
   });
@@ -80,17 +87,32 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log(`${socket.id} disconnected`);
+    // handle disconnects of non-user sockets
+    if (!(socket.id in users)) {
+      return;
+    }
 
     const disconnectUser = users[socket.id];
     const roomID = disconnectUser.roomID;
+    console.log(`${disconnectUser.username} left room ${roomID}`);
 
     delete users[socket.id];
+    if (games[roomID].users.length === 1) {
+      delete games[roomID];
+      return;
+    }
+
     games[roomID].users = games[roomID].users.filter(
       (gameUser) => gameUser.username != disconnectUser.username
     );
+
+    // if disconnecting user is leader, change leader
+    if (disconnectUser.isLeader) {
+      const newLeaderID = games[roomID].users[0].socketID;
+      users[newLeaderID].isLeader = true;
+      io.to(newLeaderID).emit("leader", true);
+    }
     emitUsers(roomID);
-    console.log(`${disconnectUser.username} left room ${roomID}`);
   });
 });
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import Axios from "axios";
 
-function WaitingScreen({ roomID, users }) {
+function WaitingScreen({ isLeader, roomID, users }) {
   const navigate = useNavigate(); // Initialize useNavigate
 
   const startGame = async () => {
@@ -24,7 +24,7 @@ function WaitingScreen({ roomID, users }) {
           <li key={index}>{user}</li>
         ))}
       </ul>
-      <button onClick={startGame}>Start Game</button>
+      {isLeader && <button onClick={startGame}>Start Game</button>}
       <button
         onClick={() => {
           navigate("/");

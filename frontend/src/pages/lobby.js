@@ -15,21 +15,30 @@ let socket = null;
 function Lobby() {
   const navigate = useNavigate(); // Initialize useNavigate
   const { username, roomID, roomURL } = useAppContext();
+  const [isLeader, setIsLeader] = useState(false);
   const [lobbyState, setLobbyState] = useState("waiting"); // Initial lobby state
   const [users, setUsers] = useState([]);
   const [message, setMessage] = useState("");
 
   const registerHandlers = () => {
+    // We need to figure out a bettery way to structure this
     socket?.on("connect", () => {
       console.log(`Connected to socket!`);
     });
     socket?.on("userUpdate", (users) => {
       setUsers(users);
     });
+    socket?.on("leader", (isLeader) => {
+      console.log(`User is leader:" ${isLeader}`);
+      setIsLeader(isLeader);
+    });
+
     socket?.on("message", (args) => {
       const { username, message } = args;
       console.log(`${username}: ${message}`);
     });
+
+    // In Game
   };
 
   useEffect(() => {
@@ -51,10 +60,16 @@ function Lobby() {
     socket.emit("message", { roomID, username, message });
   };
 
+  const sendStartGame = async () => {
+    socket.emit("startGame", { roomID });
+  };
+
   const renderLobbyComponent = () => {
     switch (lobbyState) {
       case "waiting":
-        return <WaitingScreen roomID={roomID} users={users} />;
+        return (
+          <WaitingScreen isLeader={isLeader} roomID={roomID} users={users} />
+        );
       case "asking":
         return <AskingScreen />;
       case "voting":
