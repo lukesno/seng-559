@@ -4,6 +4,7 @@ import cors from "cors";
 import http from "http";
 import { Server } from "socket.io";
 import { customAlphabet } from "nanoid";
+import serviceAccount from "./seng559-firebase-adminsdk-tddx2-cbed457917.js"
 
 const URL = "http://localhost";
 const PORT = process.env.PORT || 3001;
@@ -49,7 +50,7 @@ app.post("/join", (req, res) => {
 
 const emitUsers = (roomID) => {
   io.to(roomID).emit(
-    "userUpdate",
+    "update_users",
     games[roomID].sockets.map((socket) => users[socket].username)
   );
 };
@@ -57,8 +58,7 @@ const emitUsers = (roomID) => {
 io.on("connection", (socket) => {
   console.log(`${socket.id} connected`);
 
-  socket.on("joinGame", (args) => {
-    const { roomID, username } = args;
+  socket.on("join_game", (roomID, username) => {
     const isLeader = games[roomID].sockets.length === 0;
     const user = {
       username: username,
@@ -71,20 +71,25 @@ io.on("connection", (socket) => {
     socket.join(roomID);
 
     if (isLeader) {
-      io.to(socket.id).emit("leader", isLeader);
+      io.to(socket.id).emit("select_leader");
     }
     emitUsers(roomID);
     console.log(`${username} joined room ${roomID}`);
   });
 
-  socket.on("message", (args) => {
-    const { roomID, username, message } = args;
-    io.to(roomID).emit("message", { username, message });
+  socket.on("start_game", (roomID) => {
+    console.log(`Start game ${roomID}`);
+    io.to(roomID).emit("update_roomState", "asking");
+  })
+
+  socket.on("message_room", (roomID, username, message) => {
+    io.to(roomID).emit("message_client", username, message);
 
     console.log(`${username} sent ${message} to ${roomID}`);
   });
 
   socket.on("disconnect", () => {
+    console.log(`${socket.id} disconnected`);
     // handle disconnects of non-user sockets
     if (!(socket.id in users)) {
       return;
@@ -108,7 +113,7 @@ io.on("connection", (socket) => {
     if (disconnectUser.isLeader) {
       const newLeaderID = games[roomID].sockets[0];
       users[newLeaderID].isLeader = true;
-      io.to(newLeaderID).emit("leader", true);
+      io.to(newLeaderID).emit("select_leader");
     }
     emitUsers(roomID);
   });

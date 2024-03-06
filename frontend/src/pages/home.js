@@ -41,7 +41,7 @@ function Home() {
 
   return (
     <div>
-      <h1>LashQuip</h1>
+      <h1>RipLash</h1>
       <label>Username: </label>
       <input
         type="text"

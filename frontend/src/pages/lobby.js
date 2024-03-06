@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Axios from "axios";
 import io from "socket.io-client";
 import { useAppContext } from "../AppContext";
 
@@ -10,7 +9,7 @@ import AskingScreen from "./states/asking";
 import VotingScreen from "./states/voting";
 import ResultsScreen from "./states/results";
 
-let socket = null;
+let socket = io();
 
 function Lobby() {
   const navigate = useNavigate(); // Initialize useNavigate
@@ -20,26 +19,30 @@ function Lobby() {
   const [users, setUsers] = useState([]);
   const [message, setMessage] = useState("");
 
-  const registerHandlers = () => {
-    // We need to figure out a bettery way to structure this
-    socket?.on("connect", () => {
-      console.log(`Connected to socket!`);
-    });
-    socket?.on("userUpdate", (users) => {
-      setUsers(users);
-    });
-    socket?.on("leader", (isLeader) => {
-      console.log(`User is leader:" ${isLeader}`);
-      setIsLeader(isLeader);
-    });
-
-    socket?.on("message", (args) => {
-      const { username, message } = args;
+  const handlers = {
+    "connect": () => { console.log(`Connected to socket!`); },
+    "update_users": (users) => { setUsers(users); },
+    "select_leader": () => { setIsLeader(true); },
+    "message_client": (username, message) => {
       console.log(`${username}: ${message}`);
-    });
+    },
+    "update_roomState": (state) => {
+      console.log(`Lobby state changed to ${state}`)
+      setLobbyState(state);
+    }
+  }
 
-    // In Game
+  const registerHandlers = () => {
+    for (let handle in handlers) {
+      socket.on(handle, handlers[handle]);
+    }
   };
+
+  const deregisterHandlers = () => {
+    for (let handle in handlers) {
+      socket.off(handle);
+    }
+  }
 
   useEffect(() => {
     // Go back to home page if there is no URL (happens on refresh)
@@ -47,28 +50,29 @@ function Lobby() {
       navigate("/");
     }
 
-    socket = io(roomURL);
+    socket = io.connect(roomURL);
     registerHandlers();
-    socket.emit("joinGame", { roomID, username });
+    socket.emit("join_game", roomID, username);
 
     return () => {
+      deregisterHandlers();
       socket.disconnect();
     };
   }, []); // Empty dependency array ensures the effect runs only once when the component mounts
 
   const sendMessage = async () => {
-    socket.emit("message", { roomID, username, message });
+    socket.emit("message_room", roomID, username, message);
   };
 
   const sendStartGame = async () => {
-    socket.emit("startGame", { roomID });
+    socket.emit("start_game", roomID);
   };
 
   const renderLobbyComponent = () => {
     switch (lobbyState) {
       case "waiting":
         return (
-          <WaitingScreen isLeader={isLeader} roomID={roomID} users={users} />
+          <WaitingScreen isLeader={isLeader} roomID={roomID} users={users} sendStartGame={sendStartGame} />
         );
       case "asking":
         return <AskingScreen />;
