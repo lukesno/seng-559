@@ -36,8 +36,3 @@ const server = http.createServer((req, res) => {
   // Cycle through backend servers
   currentBackendIndex = (currentBackendIndex + 1) % backendServers.length;
 });
-
-const port = 8080;
-server.listen(port, () => {
-  console.log(`Load balancer running on port ${port}`);
-});
