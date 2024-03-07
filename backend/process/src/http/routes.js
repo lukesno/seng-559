@@ -27,4 +27,14 @@ router.post("/join", (req, res) => {
   }
 });
 
+router.get("/health", (_, res) => {
+  
+  if(games.length){
+    res.status(200).json({games: games.length});
+  }
+  else{
+    res.status(200).json({games: 0});
+  }
+});
+
 export default router;
