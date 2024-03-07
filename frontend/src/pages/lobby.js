@@ -64,22 +64,26 @@ function Lobby() {
     };
   }, []); // Empty dependency array ensures the effect runs only once when the component mounts
 
-  const sendMessage = async () => {
+  const sendMessage = () => {
     socket.emit("message_room", roomID, username, message);
   };
 
-  const sendStartGame = async () => {
-    socket.emit("start_game", roomID);
+  const sendStartGame = () => {
+    socket.emit("start_game", roomID,);
   };
+
+  const sendAnswers = () => {
+    socket.emit("send_answers", roomID,
+      { question: questions[0], answer: "answer1" },
+      { question: questions[1], answer: "answer2" }) //figuring out format
+  }
 
   const renderLobbyComponent = () => {
     switch (lobbyState) {
       case "waiting":
-        return (
-          <WaitingScreen isLeader={isLeader} roomID={roomID} users={users} sendStartGame={sendStartGame} />
-        );
+        return <WaitingScreen isLeader={isLeader} roomID={roomID} users={users} sendStartGame={sendStartGame} />;
       case "asking":
-        return <AskingScreen questions={questions} />;
+        return <AskingScreen questions={questions} sendAnswers={sendAnswers} />;
       case "voting":
         return <VotingScreen />;
       case "results":
@@ -95,9 +99,7 @@ function Lobby() {
       <div>
         <label>Message:</label>
         <input
-          type="text"
           placeholder="Message"
-          value={message}
           onChange={(event) => {
             setMessage(event.target.value);
           }}

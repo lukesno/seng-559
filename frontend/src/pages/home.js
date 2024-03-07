@@ -9,6 +9,10 @@ function Home() {
     useAppContext();
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    setRoomURL("");
+  }, [])
+
   const create = async () => {
     try {
       const response = await Axios.get("http://localhost:8080/create");

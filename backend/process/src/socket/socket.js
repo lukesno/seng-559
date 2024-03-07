@@ -15,19 +15,33 @@ export const registerHandlers = (io) => {
       const response = await fetch(`https://opentdb.com/api.php?amount=${game.sockets.length}`);
       const response_json = await response.json();
       const questions = response_json.results.map((item) => item.question);
-      for (let i = 0; i < game.sockets.length; i++) {
-        game.questions[game.sockets[i]] = [questions[i], questions[(i + 1) % questions.length]];
-      }
+
+      game.sockets.forEach((socket, i) => {
+        users[socket].questions = [questions[i], questions[(i + 1) % questions.length]];
+      });
+      game.questions = questions.map((question) => { return { question: question, answers: [] }; })
     } catch (error) {
       console.error(error);
     }
   }
 
   const sendQuestions = (roomID) => {
-    const gameQuestions = games[roomID].questions;
-    for (let socket in gameQuestions) {
-      io.to(socket).emit("send_questions", gameQuestions[socket]);
+    const game = games[roomID];
+
+    game.sockets.forEach((socket) => {
+      io.to(socket).emit("send_questions", users[socket].questions);
+    });
+  }
+
+  const questionsAnswered = (roomID) => {
+    const game = games[roomID];
+
+    for (let question of game.questions) {
+      if (question.answers.length !== 2) {
+        return false;
+      }
     }
+    return true;
   }
 
   io.on("connection", (socket) => {
@@ -40,6 +54,7 @@ export const registerHandlers = (io) => {
           username: username,
           roomID: roomID,
           isLeader: isLeader,
+          questions: []
         };
         users[socket.id] = user;
         games[roomID].sockets.push(socket.id);
@@ -56,6 +71,24 @@ export const registerHandlers = (io) => {
         await fetchQuestions(roomID);
         sendQuestions(roomID);
         io.to(roomID).emit("update_roomState", "asking");
+      },
+
+      "send_answers": (roomID, answer1, answer2) => {
+        const game = games[roomID];
+        const user = users[socket.id];
+
+        game.questions.forEach((question) => {
+          if (question.question === answer1.question) {
+            question.answers.push({ username: user.username, answer: answer1.answer })
+          }
+          if (question.question === answer2.question) {
+            question.answers.push({ username: user.username, answer: answer2.answer })
+          }
+        })
+
+        if (questionsAnswered(roomID)) {
+          io.to(roomID).emit("update_roomState", "voting")
+        }
       },
 
       "message_room": (roomID, username, message) => {
