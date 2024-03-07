@@ -14,10 +14,12 @@ let socket = io();
 function Lobby() {
   const navigate = useNavigate(); // Initialize useNavigate
   const { username, roomID, roomURL } = useAppContext();
+
   const [isLeader, setIsLeader] = useState(false);
   const [lobbyState, setLobbyState] = useState("waiting"); // Initial lobby state
   const [users, setUsers] = useState([]);
   const [message, setMessage] = useState("");
+  const [questions, setQuestions] = useState([]);
 
   const handlers = {
     "connect": () => { console.log(`Connected to socket!`); },
@@ -27,8 +29,10 @@ function Lobby() {
       console.log(`${username}: ${message}`);
     },
     "update_roomState": (state) => {
-      console.log(`Lobby state changed to ${state}`)
       setLobbyState(state);
+    },
+    "send_questions": (questions) => {
+      setQuestions(questions);
     }
   }
 
@@ -75,7 +79,7 @@ function Lobby() {
           <WaitingScreen isLeader={isLeader} roomID={roomID} users={users} sendStartGame={sendStartGame} />
         );
       case "asking":
-        return <AskingScreen />;
+        return <AskingScreen questions={questions} />;
       case "voting":
         return <VotingScreen />;
       case "results":

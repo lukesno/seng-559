@@ -12,7 +12,7 @@ function Home() {
   const create = async () => {
     try {
       const response = await Axios.get("http://localhost:8080/create");
-      const { url, roomID } = response.data;
+      const { roomID, url } = response.data;
       setRoomID(roomID);
       setRoomURL(url);
       navigate(`lobby/${roomID}`);

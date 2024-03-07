@@ -11,6 +11,7 @@ router.get("/create", (_, res) => {
     roomID: roomID,
     url: `${URL}:${PORT}`,
     sockets: [],
+    questions: {},
   };
 
   games[roomID] = newGame;
