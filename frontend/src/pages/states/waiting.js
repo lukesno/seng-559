@@ -1,18 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
-import Axios from "axios";
 
-function WaitingScreen({ roomID, users }) {
+function WaitingScreen({ isLeader, roomID, users, sendStartGame }) {
   const navigate = useNavigate(); // Initialize useNavigate
-
-  const startGame = async () => {
-    try {
-      console.log("Starting game...");
-      await Axios.post("http://example.com/api/start-game");
-    } catch (error) {
-      console.error("Error starting game: ", error);
-    }
-  };
 
   return (
     <div>
@@ -24,7 +14,7 @@ function WaitingScreen({ roomID, users }) {
           <li key={index}>{user}</li>
         ))}
       </ul>
-      <button onClick={startGame}>Start Game</button>
+      {isLeader && <button onClick={sendStartGame}>Start Game</button>}
       <button
         onClick={() => {
           navigate("/");
