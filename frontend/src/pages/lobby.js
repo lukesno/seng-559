@@ -20,21 +20,36 @@ function Lobby() {
   const [users, setUsers] = useState([]);
   const [message, setMessage] = useState("");
   const [questions, setQuestions] = useState([]);
+  const [voteQuestion, setVoteQuestion] = useState("");
+  const [voteAnswers, setVoteAnswers] = useState([]);
 
   const handlers = {
-    "connect": () => { console.log(`Connected to socket!`); },
-    "update_users": (users) => { setUsers(users); },
-    "select_leader": () => { setIsLeader(true); },
-    "message_client": (username, message) => {
+    connect: () => {
+      console.log(`Connected to socket!`);
+    },
+    update_users: (users) => {
+      setUsers(users);
+    },
+    select_leader: () => {
+      setIsLeader(true);
+    },
+    message_client: (username, message) => {
       console.log(`${username}: ${message}`);
     },
-    "update_roomState": (state) => {
+    update_roomState: (state) => {
       setLobbyState(state);
     },
-    "send_questions": (questions) => {
+    send_questions: (questions) => {
       setQuestions(questions);
-    }
-  }
+    },
+    send_voteAnswers: (voteAnswers) => {
+      setVoteQuestion(voteAnswers.question);
+      setVoteAnswers(voteAnswers.answers);
+    },
+    send_voteResults: (voteResults) => {
+      console.log(voteResults);
+    },
+  };
 
   const registerHandlers = () => {
     for (let handle in handlers) {
@@ -46,7 +61,7 @@ function Lobby() {
     for (let handle in handlers) {
       socket.off(handle);
     }
-  }
+  };
 
   useEffect(() => {
     // Go back to home page if there is no URL (happens on refresh)
@@ -69,23 +84,43 @@ function Lobby() {
   };
 
   const sendStartGame = () => {
-    socket.emit("start_game", roomID,);
+    socket.emit("start_game", roomID);
   };
 
   const sendAnswers = () => {
-    socket.emit("send_answers", roomID,
-      { question: questions[0], answer: "answer1" },
-      { question: questions[1], answer: "answer2" }) //figuring out format
-  }
+    socket.emit(
+      "send_answers",
+      roomID,
+      { question: questions[0], answer: `${username}: answer1` },
+      { question: questions[1], answer: `${username}: answer2` }
+    );
+  };
+
+  const sendVote = (vote) => {
+    socket.emit("send_vote", roomID, vote);
+  };
 
   const renderLobbyComponent = () => {
     switch (lobbyState) {
       case "waiting":
-        return <WaitingScreen isLeader={isLeader} roomID={roomID} users={users} sendStartGame={sendStartGame} />;
+        return (
+          <WaitingScreen
+            isLeader={isLeader}
+            roomID={roomID}
+            users={users}
+            sendStartGame={sendStartGame}
+          />
+        );
       case "asking":
         return <AskingScreen questions={questions} sendAnswers={sendAnswers} />;
       case "voting":
-        return <VotingScreen />;
+        return (
+          <VotingScreen
+            voteQuestion={voteQuestion}
+            voteAnswers={voteAnswers}
+            sendVote={sendVote}
+          />
+        );
       case "results":
         return <ResultsScreen />;
       default:

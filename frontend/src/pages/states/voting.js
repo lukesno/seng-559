@@ -1,7 +1,15 @@
 import React from "react";
 
-function VotingScreen({ onClick }) {
-  return <div>VotingScreen</div>;
+function VotingScreen({ voteQuestion, voteAnswers, sendVote }) {
+  return (
+    <div>
+      <h1>VotingScreen</h1>
+      <h2>Question: {voteQuestion}</h2>
+      {voteAnswers.map((answer, index) => (
+        <button onClick={() => sendVote(index)}>{answer.answer}</button>
+      ))}
+    </div>
+  );
 }
 
 export default VotingScreen;
