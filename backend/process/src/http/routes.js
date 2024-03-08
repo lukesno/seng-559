@@ -21,8 +21,8 @@ router.get("/create", (_, res) => {
 });
 
 router.get("/health", (_, res) => {
-  if (games.length) {
-    res.status(200).json({ games: games.length });
+  if (Object.keys(games).length) {
+    res.status(200).json({ games: Object.keys(games).length });
   } else {
     res.status(200).json({ games: 0 });
   }

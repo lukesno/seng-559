@@ -47,7 +47,7 @@ function Lobby() {
       setVoteAnswers(voteAnswers.answers);
     },
     send_voteResults: (voteResults) => {
-      console.log(voteResults);
+      setVoteAnswers(voteResults);
     },
   };
 
@@ -122,7 +122,13 @@ function Lobby() {
           />
         );
       case "results":
-        return <ResultsScreen />;
+        return (
+          <ResultsScreen
+            voteQuestion={voteQuestion}
+            voteAnswers={voteAnswers}
+            users={users}
+          />
+        );
       default:
         return <p>Error: Lobby unavailable or in unknown state.</p>;
     }

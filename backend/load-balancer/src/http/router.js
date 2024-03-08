@@ -24,6 +24,8 @@ router.get("/create", async (_, res) => {
       .catch((error) => {
         console.error(error);
       });
+
+    console.log(processHealth);
   }
 
   const sortedProcesses = processHealth.sort((a, b) => a.games - b.games);
