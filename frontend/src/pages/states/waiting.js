@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 function WaitingScreen({ isLeader, roomID, users, sendStartGame }) {
@@ -11,7 +11,7 @@ function WaitingScreen({ isLeader, roomID, users, sendStartGame }) {
       <h2>Users:</h2>
       <ul>
         {users.map((user, index) => (
-          <li key={index}>{user}</li>
+          <li key={index}>{user?.username}</li>
         ))}
       </ul>
       {isLeader && <button onClick={sendStartGame}>Start Game</button>}
