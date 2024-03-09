@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "cross-env nodemon src/index.js",
+    "start": "npm install && cross-env nodemon src/index.js",
     "start:3001": "cross-env PORT=3001 nodemon src/index.js",
     "start:3002": "cross-env PORT=3002 nodemon src/index.js",
     "start:3003": "cross-env PORT=3003 nodemon src/index.js",

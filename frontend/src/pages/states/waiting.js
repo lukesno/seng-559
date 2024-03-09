@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
-function WaitingScreen({ isLeader, roomID, users, sendStartGame }) {
+export function WaitingScreen({ isLeader, roomID, users, sendStartGame }) {
   const navigate = useNavigate(); // Initialize useNavigate
 
   return (
@@ -26,4 +26,3 @@ function WaitingScreen({ isLeader, roomID, users, sendStartGame }) {
   );
 }
 
-export default WaitingScreen;

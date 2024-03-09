@@ -4,7 +4,7 @@
   "description": "load balancer",
   "main": "index.js",
   "scripts": {
-    "start": "cross-env nodemon src/index.js"
+    "start": "npm install && cross-env nodemon src/index.js"
   },
   "type": "module",
   "license": "ISC",
