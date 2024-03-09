@@ -1,6 +1,6 @@
 import React from "react";
 
-function AskingScreen({ questions, sendAnswers }) {
+export function AskingScreen({ questions, sendAnswers }) {
   return (
     <div>
       <h1>AskingScreen</h1>
@@ -13,4 +13,4 @@ function AskingScreen({ questions, sendAnswers }) {
   );
 }
 
-export default AskingScreen;
+

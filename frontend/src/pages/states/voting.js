@@ -1,6 +1,6 @@
 import React from "react";
 
-function VotingScreen({ voteQuestion, voteAnswers, sendVote }) {
+export function VotingScreen({ voteQuestion, voteAnswers, sendVote }) {
   return (
     <div>
       <h1>VotingScreen</h1>
@@ -12,4 +12,3 @@ function VotingScreen({ voteQuestion, voteAnswers, sendVote }) {
   );
 }
 
-export default VotingScreen;

@@ -1,0 +1,14 @@
+# Backend
+Backend containing the load balancer and the process servers.
+## Command Line Instructions
+### Run Bash Script
+1. `\backend\  $ bash start.sh`
+### Manual Start
+Optionally, each process can be manually started in the appropriate directories.
+
+1. `\backend\load_balancer\ $ npm run start`
+
+Using another terminal:
+
+2. `\backend\process\ $ npm run start`
+

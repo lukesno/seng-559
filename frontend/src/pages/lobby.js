@@ -4,10 +4,8 @@ import io from "socket.io-client";
 import { useAppContext } from "../AppContext";
 
 // Screens
-import WaitingScreen from "./states/waiting";
-import AskingScreen from "./states/asking";
-import VotingScreen from "./states/voting";
-import ResultsScreen from "./states/results";
+import {WaitingScreen ,AskingScreen, VotingScreen, ResultsScreen } from "./states";
+
 
 let socket = io();
 

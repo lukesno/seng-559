@@ -1,6 +1,6 @@
 import React from "react";
 
-function ResultsScreen({ voteQuestion, voteAnswers, users }) {
+export function ResultsScreen({ voteQuestion, voteAnswers, users }) {
   return (
     <div>
       <h1>ResultsScreen</h1>
@@ -22,4 +22,3 @@ function ResultsScreen({ voteQuestion, voteAnswers, users }) {
   );
 }
 
-export default ResultsScreen;
