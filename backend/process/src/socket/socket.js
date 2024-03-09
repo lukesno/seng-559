@@ -4,7 +4,7 @@ const POINTS_PER_ROUND = 1000;
 const ASKING_DURATION_S = 10;
 const VOTING_DURATION_S = 10;
 const RESULT_DURATION_S = 5;
-const NUM_ROUNDS = 3;
+const NUM_ROUNDS = 2;
 
 export const registerHandlers = (io) => {
   const emitUsers = (roomID) => {
@@ -30,7 +30,7 @@ export const registerHandlers = (io) => {
       const response_json = await response.json();
       const allQuestions = response_json.results.map((item) => item.question);
       const groupedQuestions = [];
-      for (let i = 0; i < NUM_ROUNDS; i += game.sockets.length) {
+      for (let i = 0; i < allQuestions.length; i += game.sockets.length) {
         groupedQuestions.push(allQuestions.slice(i, i + game.sockets.length));
       }
 
@@ -51,6 +51,9 @@ export const registerHandlers = (io) => {
       });
     } catch (error) {
       console.error(error);
+    }
+    for (let id in users) {
+      console.log(users[id].questions);
     }
   };
 
@@ -84,6 +87,36 @@ export const registerHandlers = (io) => {
     }, 1000);
   };
 
+  const transitionToAsking = (roomID) => {
+    const game = games[roomID];
+    sendQuestions(roomID, game.round);
+    game.responseCount = 0;
+    game.questionIndex = 0;
+    updateGameState(roomID, "asking");
+    createTimer(null, roomID, ASKING_DURATION_S);
+  };
+
+  const transitionToVoting = (roomID) => {
+    const game = games[roomID];
+    io.to(roomID).emit(
+      "send_voteAnswers",
+      game.questions[game.round][game.questionIndex]
+    );
+    game.responseCount = 0;
+    updateGameState(roomID, "voting");
+    createTimer(null, roomID, VOTING_DURATION_S);
+  };
+
+  const transitionToResults = (roomID) => {
+    const game = games[roomID];
+    emitUsers(roomID);
+    io.to(roomID).emit(
+      "send_voteResults",
+      game.questions[game.round][game.questionIndex].answers
+    );
+    updateGameState(roomID, "results");
+  };
+
   io.on("connection", (socket) => {
     console.log(`${PORT}: ${socket.id} connected`);
 
@@ -111,14 +144,9 @@ export const registerHandlers = (io) => {
         console.log(`${PORT}: ${username} joined room ${roomID}`);
       },
       start_game: async (roomID) => {
-        const game = games[roomID];
-
         console.log(`${PORT}: Start game ${roomID}`);
         await fetchQuestions(roomID);
-        sendQuestions(roomID, game.round);
-        game.responseCount = 0;
-        updateGameState(roomID, "asking");
-        createTimer(null, roomID, ASKING_DURATION_S);
+        transitionToAsking(roomID);
       },
       send_answers: (roomID, answer1, answer2) => {
         const game = games[roomID];
@@ -141,13 +169,7 @@ export const registerHandlers = (io) => {
 
         if (game.responseCount === game.sockets.length) {
           clearInterval(game.interval);
-          io.to(roomID).emit(
-            "send_voteAnswers",
-            game.questions[game.round][game.questionIndex]
-          );
-          game.responseCount = 0;
-          updateGameState(roomID, "voting");
-          createTimer(null, roomID, VOTING_DURATION_S);
+          transitionToVoting(roomID);
         }
       },
       send_vote: (roomID, vote) => {
@@ -170,32 +192,19 @@ export const registerHandlers = (io) => {
               }
             });
           });
-          emitUsers(roomID);
-          io.to(roomID).emit(
-            "send_voteResults",
-            game.questions[game.round][game.questionIndex].answers
-          );
-          updateGameState(roomID, "results");
+          transitionToResults(roomID);
 
           createTimer(
             () => {
               game.questionIndex += 1;
-              game.responseCount = 0;
               if (game.questionIndex !== game.questions[game.round].length) {
-                createTimer(null, roomID, VOTING_DURATION_S);
-                io.to(roomID).emit(
-                  "send_voteAnswers",
-                  game.questions[game.round][game.questionIndex]
-                );
-                updateGameState(roomID, "voting");
+                transitionToVoting(roomID);
                 return;
               }
               game.round += 1;
+              console.log(`TYER: ${game.round}`);
               if (game.round !== NUM_ROUNDS) {
-                game.questionIndex = 0;
-                sendQuestions(roomID, game.round);
-                updateGameState(roomID, "asking");
-                createTimer(null, roomID, ASKING_DURATION_S);
+                transitionToAsking(roomID);
                 return;
               } else {
                 updateGameState(roomID, "finalResults");
