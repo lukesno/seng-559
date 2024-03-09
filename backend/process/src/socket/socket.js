@@ -56,13 +56,14 @@ export const registerHandlers = (io) => {
     let timer = duration;
     io.to(roomID).emit("send_timer", timer--);
     game.interval = setInterval(()=> {
-      if(timer === 0){
+      io.to(roomID).emit("send_timer", timer--);
+      if(timer < 0){
         clearInterval(game.interval);
         if(callback !== null){
           callback();
         }
+        return;
       }
-      io.to(roomID).emit("send_timer", timer--);
     }, 1000)
   }
 
@@ -163,6 +164,7 @@ export const registerHandlers = (io) => {
             game.questionIndex += 1;
             game.responseCount = 0;
             if(game.questionIndex !== game.questions.length){
+              createTimer(null, roomID, VOTING_DURATION_S);
               io.to(roomID).emit(
                 "send_voteAnswers",
                 game.questions[game.questionIndex]
