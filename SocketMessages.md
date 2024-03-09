@@ -22,6 +22,7 @@ Server to client:
 - `send_questions(questions)`: send questions to be answered clients
 - `send_voteAnswers(answer)`: send the answers to be voted on
 - `send_voteResults(voteResults)`: send the results of the vote back to client
+- `send_timer(time)`: send the timer value to the client 
 
 ## Init phase:
 

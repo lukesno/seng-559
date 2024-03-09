@@ -5,6 +5,7 @@ export function ResultsScreen({ voteQuestion, voteAnswers, users }) {
     <div>
       <h1>ResultsScreen</h1>
       <h2>Question: ${voteQuestion}</h2>
+      <h2>Timer: {timer}</h2>
       {voteAnswers.map((answer, index) => (
         <div key={index}>
           <div>User: {answer.username} </div>

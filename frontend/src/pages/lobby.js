@@ -13,6 +13,7 @@ function Lobby() {
   const navigate = useNavigate(); // Initialize useNavigate
   const { username, roomID, roomURL } = useAppContext();
 
+  const [timer, setTimer] = useState(0);
   const [isLeader, setIsLeader] = useState(false);
   const [lobbyState, setLobbyState] = useState("waiting"); // Initial lobby state
   const [users, setUsers] = useState([]);
@@ -47,6 +48,9 @@ function Lobby() {
     send_voteResults: (voteResults) => {
       setVoteAnswers(voteResults);
     },
+    send_timer: (time) => {
+      setTimer(time);
+    }
   };
 
   const registerHandlers = () => {
@@ -110,13 +114,14 @@ function Lobby() {
           />
         );
       case "asking":
-        return <AskingScreen questions={questions} sendAnswers={sendAnswers} />;
+        return <AskingScreen questions={questions} sendAnswers={sendAnswers} timer={timer}/>;
       case "voting":
         return (
           <VotingScreen
             voteQuestion={voteQuestion}
             voteAnswers={voteAnswers}
             sendVote={sendVote}
+            timer={timer}
           />
         );
       case "results":
@@ -125,8 +130,11 @@ function Lobby() {
             voteQuestion={voteQuestion}
             voteAnswers={voteAnswers}
             users={users}
+            timer={timer}
           />
         );
+      case "finalResults":
+        return (<FinalResultsScreen users={users}/>)
       default:
         return <p>Error: Lobby unavailable or in unknown state.</p>;
     }
