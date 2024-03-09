@@ -100,7 +100,8 @@ export const registerHandlers = (io) => {
         await fetchQuestions(roomID);
         sendQuestions(roomID);
         game.responseCount = 0;
-        io.to(roomID).emit("update_roomState", "asking");
+        game.gameState = "asking";
+        io.to(roomID).emit("update_roomState", game.gameState);
         createTimer(null, roomID, ASKING_DURATION_S);
       },
       send_answers: (roomID, answer1, answer2) => {
@@ -129,7 +130,8 @@ export const registerHandlers = (io) => {
             game.questions[game.questionIndex]
           );
           game.responseCount = 0;
-          io.to(roomID).emit("update_roomState", "voting");
+          game.gameState = "voting";
+          io.to(roomID).emit("update_roomState", game.gameState);
           createTimer(null, roomID, VOTING_DURATION_S);
         }
       },
@@ -158,7 +160,8 @@ export const registerHandlers = (io) => {
             "send_voteResults",
             game.questions[game.questionIndex].answers
           );
-          io.to(roomID).emit("update_roomState", "results");
+          game.gameState = "results";
+          io.to(roomID).emit("update_roomState", game.gameState);
           
           createTimer(()=>{
             game.questionIndex += 1;
@@ -169,9 +172,11 @@ export const registerHandlers = (io) => {
                 "send_voteAnswers",
                 game.questions[game.questionIndex]
                 );
-              io.to(roomID).emit("update_roomState", "voting");
-            } else {  
-              io.to(roomID).emit("update_roomState", "finalResults");
+              game.gameState = "voting";
+              io.to(roomID).emit("update_roomState", game.gameState);
+            } else {
+              game.gameState = "finalResults";
+              io.to(roomID).emit("update_roomState", game.gameState);
             }
           }, roomID, RESULT_DURATION_S)
         }
