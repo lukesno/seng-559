@@ -68,29 +68,45 @@
 - Whenever local state update, update state on Firebase
 
 ### DB Schema
+Database:
 ```TS
-gameObject{
-	"key": string,
-	"url": string,
-	"players": 
-	[{
-		"name": string,
-		"score": number
-	}]
-	"phase": number,
-	"round": number,
-	"prompts":
-	[{
-		"round": number,
-		"question": string,
-		"answers":
-		[{
-			"player":string,
-			"answer":string
-		}]
-	}]
+roomID : game
+socketID : user
+```
+
+Types:
+```TS
+answer{
+	"username": string,
+	"answer": string,
+	"votes": number,
+	"score": number,
 }
 
+question{
+	"question": string
+	"answers": answer[]
+}
+
+game{
+    "roomID": string,
+    "url": string,
+	"gameState": string,
+    "sockets": string[],
+    "interval": any, // id of current timer
+    "responseCount": number,
+    "questions": question[],
+    "questionIndex": number
+}
+
+user{
+	"username": string,
+	"roomID": string,
+	"isLeader": boolean,
+	"questions": string[]
+	"submitted": boolean
+	"score": number
+}
 ```
 
 ## Game Server Crashing Recovery

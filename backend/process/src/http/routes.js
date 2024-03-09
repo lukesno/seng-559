@@ -11,6 +11,7 @@ router.get("/create", (_, res) => {
     roomID: roomID,
     url: `${URL}:${PORT}`,
     sockets: [],
+    gameState: "waiting",
     interval: null,
     responseCount: 0,
     questions: [],
