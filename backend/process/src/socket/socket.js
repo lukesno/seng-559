@@ -103,6 +103,7 @@ export const registerHandlers = (io) => {
       game.questions[game.round][game.questionIndex].answers
     );
     updateGameState(game, "results");
+
     createTimer(game, RESULT_DURATION_S, () => {
       game.questionIndex += 1;
       if (game.questionIndex !== game.questions[game.round].length) {
@@ -114,9 +115,13 @@ export const registerHandlers = (io) => {
         transitionToAsking(game);
         return;
       } else {
-        updateGameState(game, "finalResults");
+        transitionToFinalResults(game);
       }
     });
+  };
+
+  const transitionToFinalResults = (game) => {
+    updateGameState(game, "finalResults");
   };
 
   io.on("connection", (socket) => {
@@ -146,8 +151,8 @@ export const registerHandlers = (io) => {
         console.log(`${PORT}: ${username} joined room ${roomID}`);
       },
       start_game: async (roomID) => {
-        const game = games[roomID];
         console.log(`${PORT}: Start game ${roomID}`);
+        const game = games[roomID];
         await fetchQuestions(game);
         transitionToAsking(game);
       },
@@ -200,7 +205,6 @@ export const registerHandlers = (io) => {
       },
       message_room: (roomID, username, message) => {
         io.to(roomID).emit("message_client", username, message);
-
         console.log(`${PORT}: ${username} sent ${message} to ${roomID}`);
       },
       disconnect: () => {
