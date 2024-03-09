@@ -1,6 +1,6 @@
 import React from "react";
 
-function FinalResultsScreen({ users }) {
+export function FinalResultsScreen({ users }) {
   return (
     <div>
       <h1>Final Results Screen</h1>
@@ -12,5 +12,3 @@ function FinalResultsScreen({ users }) {
     </div>
   );
 }
-
-export default FinalResultsScreen;
