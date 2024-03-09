@@ -21,5 +21,5 @@ const io = new Server(server, {
 registerHandlers(io);
 
 server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`${PORT}: Server is running on port ${PORT}`);
 });
