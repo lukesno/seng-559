@@ -4,6 +4,7 @@ const POINTS_PER_ROUND = 1000;
 const ASKING_DURATION_S = 10;
 const VOTING_DURATION_S = 10;
 const RESULT_DURATION_S = 5;
+const NUM_ROUNDS = 3;
 
 export const registerHandlers = (io) => {
   const emitUsers = (roomID) => {
@@ -24,48 +25,64 @@ export const registerHandlers = (io) => {
 
     try {
       const response = await fetch(
-        `https://opentdb.com/api.php?amount=${game.sockets.length}`
+        `https://opentdb.com/api.php?amount=${game.sockets.length * NUM_ROUNDS}`
       );
       const response_json = await response.json();
-      const questions = response_json.results.map((item) => item.question);
+      const allQuestions = response_json.results.map((item) => item.question);
+      const groupedQuestions = [];
+      for (let i = 0; i < NUM_ROUNDS; i += game.sockets.length) {
+        groupedQuestions.push(allQuestions.slice(i, i + game.sockets.length));
+      }
 
-      game.sockets.forEach((socket, i) => {
-        users[socket].questions = [
-          questions[i],
-          questions[(i + 1) % questions.length],
-        ];
+      groupedQuestions.forEach((questions) => {
+        game.sockets.forEach((socket, i) => {
+          users[socket].questions.push([
+            questions[i],
+            questions[(i + 1) % questions.length],
+          ]);
+        });
       });
-      game.questions = questions.map((question) => {
-        return { question: question, answers: [] };
+      groupedQuestions.forEach((questions) => {
+        game.questions.push(
+          questions.map((question) => {
+            return { question: question, answers: [] };
+          })
+        );
       });
     } catch (error) {
       console.error(error);
     }
   };
 
-  const sendQuestions = (roomID) => {
+  const sendQuestions = (roomID, round) => {
     const game = games[roomID];
 
     game.sockets.forEach((socket) => {
-      io.to(socket).emit("send_questions", users[socket].questions);
+      io.to(socket).emit("send_questions", users[socket].questions[round]);
     });
+  };
+
+  const updateGameState = (roomID, gameState) => {
+    const game = games[roomID];
+    game.gameState = gameState;
+    io.to(roomID).emit("update_roomState", game.gameState);
   };
 
   const createTimer = (callback, roomID, duration) => {
     const game = games[roomID];
     let timer = duration;
     io.to(roomID).emit("send_timer", timer--);
-    game.interval = setInterval(()=> {
+    game.interval = setInterval(() => {
       io.to(roomID).emit("send_timer", timer--);
-      if(timer < 0){
+      if (timer < 0) {
         clearInterval(game.interval);
-        if(callback !== null){
+        if (callback !== null) {
           callback();
         }
         return;
       }
-    }, 1000)
-  }
+    }, 1000);
+  };
 
   io.on("connection", (socket) => {
     console.log(`${PORT}: ${socket.id} connected`);
@@ -98,10 +115,9 @@ export const registerHandlers = (io) => {
 
         console.log(`${PORT}: Start game ${roomID}`);
         await fetchQuestions(roomID);
-        sendQuestions(roomID);
+        sendQuestions(roomID, game.round);
         game.responseCount = 0;
-        game.gameState = "asking";
-        io.to(roomID).emit("update_roomState", game.gameState);
+        updateGameState(roomID, "asking");
         createTimer(null, roomID, ASKING_DURATION_S);
       },
       send_answers: (roomID, answer1, answer2) => {
@@ -110,7 +126,7 @@ export const registerHandlers = (io) => {
         const answers = [answer1, answer2];
 
         game.responseCount += 1;
-        game.questions.forEach((question) => {
+        game.questions[game.round].forEach((question) => {
           answers.forEach((answer) => {
             if (question.question === answer.question) {
               question.answers.push({
@@ -127,18 +143,17 @@ export const registerHandlers = (io) => {
           clearInterval(game.interval);
           io.to(roomID).emit(
             "send_voteAnswers",
-            game.questions[game.questionIndex]
+            game.questions[game.round][game.questionIndex]
           );
           game.responseCount = 0;
-          game.gameState = "voting";
-          io.to(roomID).emit("update_roomState", game.gameState);
+          updateGameState(roomID, "voting");
           createTimer(null, roomID, VOTING_DURATION_S);
         }
       },
       send_vote: (roomID, vote) => {
         console.log(`${PORT}: ${users[socket.id].username} voted for ${vote}`);
         const game = games[roomID];
-        const answers = game.questions[game.questionIndex].answers;
+        const answers = game.questions[game.round][game.questionIndex].answers;
 
         game.responseCount += 1;
         answers[vote].votes += 1;
@@ -158,27 +173,37 @@ export const registerHandlers = (io) => {
           emitUsers(roomID);
           io.to(roomID).emit(
             "send_voteResults",
-            game.questions[game.questionIndex].answers
+            game.questions[game.round][game.questionIndex].answers
           );
-          game.gameState = "results";
-          io.to(roomID).emit("update_roomState", game.gameState);
-          
-          createTimer(()=>{
-            game.questionIndex += 1;
-            game.responseCount = 0;
-            if(game.questionIndex !== game.questions.length){
-              createTimer(null, roomID, VOTING_DURATION_S);
-              io.to(roomID).emit(
-                "send_voteAnswers",
-                game.questions[game.questionIndex]
+          updateGameState(roomID, "results");
+
+          createTimer(
+            () => {
+              game.questionIndex += 1;
+              game.responseCount = 0;
+              if (game.questionIndex !== game.questions[game.round].length) {
+                createTimer(null, roomID, VOTING_DURATION_S);
+                io.to(roomID).emit(
+                  "send_voteAnswers",
+                  game.questions[game.round][game.questionIndex]
                 );
-              game.gameState = "voting";
-              io.to(roomID).emit("update_roomState", game.gameState);
-            } else {
-              game.gameState = "finalResults";
-              io.to(roomID).emit("update_roomState", game.gameState);
-            }
-          }, roomID, RESULT_DURATION_S)
+                updateGameState(roomID, "voting");
+                return;
+              }
+              game.round += 1;
+              if (game.round !== NUM_ROUNDS) {
+                game.questionIndex = 0;
+                sendQuestions(roomID, game.round);
+                updateGameState(roomID, "asking");
+                createTimer(null, roomID, ASKING_DURATION_S);
+                return;
+              } else {
+                updateGameState(roomID, "finalResults");
+              }
+            },
+            roomID,
+            RESULT_DURATION_S
+          );
         }
       },
       message_room: (roomID, username, message) => {
