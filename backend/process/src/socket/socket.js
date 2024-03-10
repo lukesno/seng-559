@@ -82,8 +82,8 @@ export const registerHandlers = (io) => {
     sendQuestions(game);
     game.responseCount = 0;
     game.questionIndex = 0;
-    updateGameState(game, "asking");
     createTimer(game, ASKING_DURATION_S, null);
+    updateGameState(game, "asking");
   };
 
   const transitionToVoting = (game) => {
@@ -92,8 +92,8 @@ export const registerHandlers = (io) => {
       game.questions[game.round][game.questionIndex]
     );
     game.responseCount = 0;
-    updateGameState(game, "voting");
     createTimer(game, VOTING_DURATION_S, null);
+    updateGameState(game, "voting");
   };
 
   const transitionToResults = (game) => {
@@ -184,11 +184,13 @@ export const registerHandlers = (io) => {
         console.log(`${PORT}: ${users[socket.id].username} voted for ${vote}`);
         const game = games[roomID];
         const answers = game.questions[game.round][game.questionIndex].answers;
+        
+        if(vote !== -1){
+          answers[vote].votes += 1;
+          game.responseCount += 1;
+        }
 
-        game.responseCount += 1;
-        answers[vote].votes += 1;
-
-        if (game.responseCount === game.sockets.length) {
+        if (game.responseCount === game.sockets.length - 2) {
           clearInterval(game.interval);
           game.sockets.forEach((socket) => {
             const user = users[socket];

@@ -4,14 +4,22 @@ import io from "socket.io-client";
 import { useAppContext } from "../AppContext";
 
 // Screens
-import { WaitingScreen, AskingScreen, VotingScreen, ResultsScreen, FinalResultsScreen } from "./states";
-
+import {
+  WaitingScreen,
+  AskingScreen,
+  VotingScreen,
+  ResultsScreen,
+  FinalResultsScreen,
+} from "./states";
 
 let socket = io();
 
 function Lobby() {
   const navigate = useNavigate(); // Initialize useNavigate
   const { username, roomID, roomURL } = useAppContext();
+
+  const [isMessagePanelVisible, setIsMessagePanelVisible] = useState(false);
+  const [messages, setMessages] = useState([]);
 
   const [timer, setTimer] = useState(0);
   const [isLeader, setIsLeader] = useState(false);
@@ -33,7 +41,8 @@ function Lobby() {
       setIsLeader(true);
     },
     message_client: (username, message) => {
-      console.log(`${username}: ${message}`);
+      console.log(message);
+      setMessages((prevMessages) => [...prevMessages, { username, message }]);
     },
     update_roomState: (state) => {
       setLobbyState(state);
@@ -50,7 +59,7 @@ function Lobby() {
     },
     send_timer: (time) => {
       setTimer(time);
-    }
+    },
   };
 
   const registerHandlers = () => {
@@ -89,12 +98,12 @@ function Lobby() {
     socket.emit("start_game", roomID);
   };
 
-  const sendAnswers = () => {
+  const sendAnswers = (answers) => {
     socket.emit(
       "send_answers",
       roomID,
-      { question: questions[0], answer: `${username}: answer1` },
-      { question: questions[1], answer: `${username}: answer2` }
+      { question: questions[0], answer: answers[0] },
+      { question: questions[1], answer: answers[1] }
     );
   };
 
@@ -111,10 +120,17 @@ function Lobby() {
             roomID={roomID}
             users={users}
             sendStartGame={sendStartGame}
+            username={username}
           />
         );
       case "asking":
-        return <AskingScreen questions={questions} sendAnswers={sendAnswers} timer={timer}/>;
+        return (
+          <AskingScreen
+            questions={questions}
+            sendAnswers={sendAnswers}
+            timer={timer}
+          />
+        );
       case "voting":
         return (
           <VotingScreen
@@ -122,6 +138,7 @@ function Lobby() {
             voteAnswers={voteAnswers}
             sendVote={sendVote}
             timer={timer}
+            username={username}
           />
         );
       case "results":
@@ -134,26 +151,81 @@ function Lobby() {
           />
         );
       case "finalResults":
-        return (<FinalResultsScreen users={users}/>)
+        return <FinalResultsScreen users={users} />;
       default:
         return <p>Error: Lobby unavailable or in unknown state.</p>;
     }
   };
 
   return (
-    <div>
-      {/* TEMPORARY */}
-      <div>
-        <label>Message:</label>
-        <input
-          placeholder="Message"
-          onChange={(event) => {
-            setMessage(event.target.value);
-          }}
-        />
-        <button onClick={sendMessage}>Message</button>
+    <div className="relative min-h-screen bg-indigo-900 text-white flex items-center justify-center">
+      {/* Expand/Collapse Button */}
+      <button
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-purple-500 px-4 py-2 rounded-r-md font-medium hover:bg-purple-700 transition duration-300 ease-in-out shadow-lg"
+        onClick={() => setIsMessagePanelVisible(!isMessagePanelVisible)}
+        aria-label="Toggle message panel"
+      >
+        {isMessagePanelVisible ? "←" : "→"}
+      </button>
+
+      {/* Message Panel */}
+      <div
+        className={`absolute left-0 top-0 h-full w-64 bg-gray-800 p-4 rounded-tr-lg shadow-xl transition-transform duration-300 ease-in-out ${
+          isMessagePanelVisible ? "translate-x-0" : "-translate-x-full"
+        }`}
+        style={{ zIndex: 10 }}
+      >
+        <h2 className="text-lg font-semibold mb-2">Messages</h2>
+
+        {/* Messages Display */}
+        <div
+          className="overflow-auto mb-4 h-5/6 custom-scrollbar"
+          style={{ maxHeight: "calc(100% - 4rem)" }}
+        >
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`p-2 rounded-md m-2 ${
+                msg.username === username ? "bg-green-500" : "bg-gray-700"
+              } overflow-hidden`}
+            >
+              <strong
+                style={{
+                  color: msg.username === username ? "#FFF" : "#FDBA74",
+                }}
+              >
+                {msg.username}:
+              </strong>
+              <p
+                className="break-words"
+                style={{ textAlign: "left", margin: 0 }}
+              >
+                {msg.message}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Message Input */}
+        <div className="mb-2">
+          <input
+            className="w-full p-2 rounded-md text-black"
+            placeholder="Type your message here"
+            onChange={(event) => {
+              setMessage(event.target.value);
+            }}
+          />
+        </div>
+        {/* Send Button */}
+        <button
+          className="w-full bg-green-500 px-6 py-2 rounded-md font-semibold hover:bg-green-700 transition duration-300 ease-in-out shadow-lg"
+          onClick={sendMessage}
+        >
+          Send
+        </button>
       </div>
-      {/* END TEMPORARY */}
+
+      {/* Main Content */}
       {lobbyState ? (
         renderLobbyComponent()
       ) : (

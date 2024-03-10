@@ -11,7 +11,7 @@ function Home() {
 
   useEffect(() => {
     setRoomURL("");
-  }, [])
+  }, []);
 
   const create = async () => {
     try {
@@ -44,33 +44,65 @@ function Home() {
   };
 
   return (
-    <div>
-      <h1>RipLash</h1>
-      <label>Username: </label>
-      <input
-        type="text"
-        placeholder="Username"
-        value={username}
-        onChange={(event) => {
-          setUsername(event.target.value);
-        }}
-      />
-      <div>
-        <label>Create a Room: </label>
-        <button onClick={create}>Create</button>
-      </div>
-      <div>
-        <label>Join a Room: </label>
-        <input
-          type="text"
-          placeholder="Room Code"
-          value={roomID}
-          onChange={(event) => {
-            setRoomID(event.target.value);
-          }}
-        />
-        <button onClick={join}>Join</button>
-        {error && <p>{error}</p>}
+    <div className="min-h-screen bg-indigo-900 text-white flex flex-col items-center justify-center">
+      <h1 className="text-4xl font-bold mb-8 text-purple-300">
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+          RipLash
+        </span>
+      </h1>
+
+      <div className="w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-lg">
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2">Username:</label>
+          <input
+            className="w-full p-2 text-black rounded-md"
+            type="text"
+            placeholder="Enter your username"
+            value={username}
+            onChange={(event) => {
+              setUsername(event.target.value);
+            }}
+          />
+        </div>
+
+        <div className="mb-4 flex justify-between items-center">
+          <div className="flex-1 mr-2">
+            <label className="block text-sm font-medium mb-2">
+              Create a Room:
+            </label>
+            <button
+              className="w-full text-white bg-blue-500 rounded-md p-2 hover:bg-blue-700 transition duration-300 ease-in-out transform hover:-translate-y-1 shadow-lg"
+              onClick={create}
+            >
+              Create
+            </button>
+          </div>
+
+          <div className="flex-1 ml-2">
+            <label className="block text-sm font-medium mb-2">
+              Join a Room:
+            </label>
+            <div className="flex">
+              <input
+                className="flex-1 p-2 rounded-l-md text-black"
+                type="text"
+                placeholder="Room Code"
+                value={roomID}
+                onChange={(event) => {
+                  setRoomID(event.target.value);
+                }}
+              />
+              <button
+                className="bg-green-500 rounded-r-md p-2 hover:bg-green-700 transition duration-300 ease-in-out"
+                onClick={join}
+              >
+                Join
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
       </div>
     </div>
   );
