@@ -13,6 +13,7 @@ router.get("/create", (_, res) => {
     sockets: [],
     gameState: "waiting",
     interval: null,
+    round: 0,
     responseCount: 0,
     questions: [],
     questionIndex: 0,
