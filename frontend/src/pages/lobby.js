@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { useAppContext } from "../AppContext";
-
+import Axios from "axios";
 // Screens
 import { WaitingScreen, AskingScreen, VotingScreen, ResultsScreen, FinalResultsScreen } from "./states";
 
@@ -11,7 +11,7 @@ let socket = io();
 
 function Lobby() {
   const navigate = useNavigate(); // Initialize useNavigate
-  const { username, roomID, roomURL } = useAppContext();
+  const { username, roomID, roomURL, setRoomID, setRoomURL } = useAppContext();
 
   const [timer, setTimer] = useState(0);
   const [isLeader, setIsLeader] = useState(false);
@@ -52,9 +52,26 @@ function Lobby() {
     },
     send_timer: (time) => {
       setTimer(time);
+    },
+    disconnect: () => {
+      // For now if this event is emitted,
+      // something most likely went wrong with the server socket connection
+      restart(roomID)
+      console.log("Disconnected from socket!");
+
     }
   };
-
+  const restart = async (oldRoomID) => {
+    try {
+      const response = await Axios.post("http://localhost:8080/restart", {roomID:  oldRoomID});
+      const { roomID, url } = response.data;
+      setRoomID(roomID);
+      setRoomURL(url);
+      navigate(`lobby/${roomID}`);
+    } catch (error) {
+      console.error("Error restarting / reconnecting to room ", error);
+    }
+  };
   const registerHandlers = () => {
     for (let handle in handlers) {
       socket.on(handle, handlers[handle]);

@@ -1,8 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
-
+import { useAppContext } from "../../AppContext";
 export function WaitingScreen({ isLeader, roomID, users, sendStartGame }) {
   const navigate = useNavigate(); // Initialize useNavigate
+  const { setRoomID } = useAppContext();
+  
+  function onGoBack() {
+    setRoomID("")
+    navigate("/")
+  }
 
   return (
     <div>
@@ -17,7 +23,7 @@ export function WaitingScreen({ isLeader, roomID, users, sendStartGame }) {
       {isLeader && <button onClick={sendStartGame}>Start Game</button>}
       <button
         onClick={() => {
-          navigate("/");
+          onGoBack()
         }}
       >
         Go Back

@@ -6,10 +6,14 @@ import { addDocument } from "../database/firestore.js";
 const nanoid = customAlphabet("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ", 4);
 const router = express.Router();
 
-router.get("/create", async (_, res) => {
-  const roomID = nanoid();
+router.get("/create", async (req, res) => {
+  let {roomID} = req.query
+  if (!roomID) {
+    console.log("Generating new roomID")
+    roomID = nanoid();
+  }
   const newGame = {
-    roomID: roomID,
+    roomID,
     url: `${URL}:${PORT}`,
     users: [],
     sockets: [],
@@ -34,5 +38,6 @@ router.get("/health", (_, res) => {
     res.status(200).json({ games: 0 });
   }
 });
+
 
 export default router;
