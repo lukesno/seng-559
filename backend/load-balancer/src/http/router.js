@@ -3,7 +3,6 @@ import http from "http";
 import { BACKENDS_URL } from "../state.js";
 
 const router = express.Router();
-
 const runningGames = [];
 
 router.get("/create", async (_, res) => {

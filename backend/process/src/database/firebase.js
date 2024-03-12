@@ -1,0 +1,19 @@
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, doc, addDoc, deleteDoc, updateDoc } from "firebase/firestore";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCqC7jrJ1tfYVf4KCdRRa5f0eeEINDd_n0",
+    authDomain: "seng559.firebaseapp.com",
+    projectId: "seng559",
+    storageBucket: "seng559.appspot.com",
+    messagingSenderId: "759168683172",
+    appId: "1:759168683172:web:48adf8faf7553ba205ea31",
+    measurementId: "G-EMJJ6XN0B5"
+};
+
+// Initialize Firebase, needed for firestore ref creation
+const app = initializeApp(firebaseConfig);
+// Initialize Firestore
+const db = getFirestore(app);
+
+export default db;

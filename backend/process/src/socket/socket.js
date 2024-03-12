@@ -1,3 +1,4 @@
+import { addDocument, deleteDocument, getDocuments, updateDocument } from "../database/firestore.js";
 import { users, games, PORT } from "../state.js";
 
 const POINTS_PER_ROUND = 1000;
@@ -8,6 +9,7 @@ const NUM_ROUNDS = 2;
 
 const fetchQuestions = async (game) => {
   try {
+    console.log("fetching questions")
     const response = await fetch(
       `https://opentdb.com/api.php?amount=${game.sockets.length * NUM_ROUNDS}`
     );
@@ -39,23 +41,20 @@ const fetchQuestions = async (game) => {
 };
 
 export const registerHandlers = (io, socket) => {
-  const emitUsers = (game) => {
+  const emitUsers = async (game) => {
+    const users = await getDocuments('users', 'roomID', game.roomID)
+    console.log("users retrieved", users)
     io.to(game.roomID).emit(
       "update_users",
-      game.sockets.map((socket) => {
-        return {
-          username: users[socket].username,
-          submitted: users[socket].submitted,
-          score: users[socket].score,
-        };
-      })
+      users
     );
   };
 
 
-  const sendQuestions = (game) => {
-    game.sockets.forEach((socket) => {
-      io.to(socket).emit("send_questions", users[socket].questions[game.round]);
+  const sendQuestions = async (game) => {
+    const users = await getDocuments('users', 'roomID', game.roomID)
+    users.forEach((user) => {
+      io.to(user.socketID).emit("send_questions", user.questions[game.round]);
     });
   };
 
@@ -126,12 +125,18 @@ export const registerHandlers = (io, socket) => {
   };
 
   const handlers = {
-    join_game: (roomID, username) => {
-      if (!games[roomID]) {
+    join_game: async (roomID, username) => {
+      const docs = await getDocuments('games', 'roomID', roomID)
+      // Assuming no roomID dupe entries
+      const game = docs[0]
+      console.log("game retrieved:", game)
+      if (!game) {
         return;
       }
-      const isLeader = games[roomID].sockets.length === 0;
+      const isLeader = game.sockets.length === 0;
       const user = {
+        // User identified by socketID
+        socketID: socket.id,
         username: username,
         roomID: roomID,
         isLeader: isLeader,
@@ -139,24 +144,30 @@ export const registerHandlers = (io, socket) => {
         submitted: false,
         score: 0,
       };
-      users[socket.id] = user;
-      games[roomID].sockets.push(socket.id);
+      await addDocument("users", user);
+      game.sockets.push(socket.id);
+      await updateDocument("games", game.id, game)
       socket.join(roomID);
       if (isLeader) {
         io.to(socket.id).emit("select_leader");
       }
-      emitUsers(games[roomID]);
+      emitUsers(game);
       console.log(`${PORT}: ${username} joined room ${roomID}`);
     },
     start_game: async (roomID) => {
       console.log(`${PORT}: Start game ${roomID}`);
-      const game = games[roomID];
+      const docs = await getDocuments('games', 'roomID', roomID)
+      // Assuming no roomID dupe entries
+      const game = docs[0]
       await fetchQuestions(game);
       transitionToAsking(game);
     },
-    send_answers: (roomID, answer1, answer2) => {
-      const game = games[roomID];
-      const user = users[socket.id];
+    send_answers: async (roomID, answer1, answer2) => {
+      const docs = await getDocuments('games', 'roomID', roomID)
+      // Assuming no roomID dupe entries
+      const game = docs[0]
+      const users = await getDocuments('users', 'socketID', socket.id)
+      const user = users[0];
       const answers = [answer1, answer2];
 
       game.responseCount += 1;
@@ -178,9 +189,13 @@ export const registerHandlers = (io, socket) => {
         transitionToVoting(game);
       }
     },
-    send_vote: (roomID, vote) => {
-      console.log(`${PORT}: ${users[socket.id].username} voted for ${vote}`);
-      const game = games[roomID];
+    send_vote: async(roomID, vote) => {
+      const users = await getDocuments('users', 'socketID', socket.id)
+      const user = users[0];
+      console.log(`${PORT}: ${user.username} voted for ${vote}`);
+      const docs = await getDocuments('games', 'roomID', roomID)
+      // Assuming no roomID dupe entries
+      const game = docs[0]
       const answers = game.questions[game.round][game.questionIndex].answers;
 
       game.responseCount += 1;
@@ -188,8 +203,8 @@ export const registerHandlers = (io, socket) => {
 
       if (game.responseCount === game.sockets.length) {
         clearInterval(game.interval);
-        game.sockets.forEach((socket) => {
-          const user = users[socket];
+        const users = await getDocuments('users', 'roomID', roomID)
+        users.forEach(async (user) => {
           answers.forEach((answer) => {
             answer.score =
               (POINTS_PER_ROUND * answer.votes) / game.sockets.length;
@@ -197,6 +212,8 @@ export const registerHandlers = (io, socket) => {
               user.score += answer.score; // can probably improve this
             }
           });
+          // Update in db
+          await updateDocument('users', user.id, user)
         });
         transitionToResults(game);
       }
@@ -205,31 +222,39 @@ export const registerHandlers = (io, socket) => {
       io.to(roomID).emit("message_client", username, message);
       console.log(`${PORT}: ${username} sent ${message} to ${roomID}`);
     },
-    disconnect: () => {
+    disconnect: async () => {
       console.log(`${PORT}: ${socket.id} disconnected`);
+      const users = await getDocuments('users', 'socketID', socket.id);
       // handle disconnects of non-user sockets
-      if (!(socket.id in users)) {
+      if (users.length == 0) {
         return;
       }
 
-      const disconnectUser = users[socket.id];
+      // Again assuming that there is a unique socket id for each user
+      const disconnectUser = users[0]
       const roomID = disconnectUser.roomID;
       console.log(`${PORT}: ${disconnectUser.username} left room ${roomID}`);
 
-      delete users[socket.id];
-      if (games[roomID].sockets.length === 1) {
-        delete games[roomID];
+      await deleteDocument('users', disconnectUser.id)
+      const docs = await getDocuments('games', 'roomID', roomID)
+      // Assuming no roomID dupe entries
+      const game = docs[0]
+      if (game.sockets.length === 1) {
+        await deleteDocument('games', roomID)
         return;
       }
 
-      games[roomID].sockets = games[roomID].sockets.filter(
+      game.sockets = game.sockets.filter(
         (gameUserSocketID) => gameUserSocketID != socket.id
       );
 
       // if disconnecting user is leader, change leader
       if (disconnectUser.isLeader) {
-        const newLeaderID = games[roomID].sockets[0];
-        users[newLeaderID].isLeader = true;
+        const newLeaderID = game.sockets[0];
+        const users = getDocuments('users', 'socketID', newLeaderID)
+        const newLeaderUser = users[0]
+        newLeaderUser.isLeader = true;
+        await updateDocument('users', newLeaderUser.id, newLeaderUser)
         io.to(newLeaderID).emit("select_leader");
       }
       emitUsers(games[roomID]);

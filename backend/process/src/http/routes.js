@@ -1,15 +1,17 @@
 import express from "express";
 import { games, URL, PORT } from "../state.js";
 import { customAlphabet } from "nanoid";
+import { addDocument } from "../database/firestore.js";
 
 const nanoid = customAlphabet("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ", 4);
 const router = express.Router();
 
-router.get("/create", (_, res) => {
+router.get("/create", async (_, res) => {
   const roomID = nanoid();
   const newGame = {
     roomID: roomID,
     url: `${URL}:${PORT}`,
+    users: [],
     sockets: [],
     gameState: "waiting",
     interval: null,
@@ -18,6 +20,8 @@ router.get("/create", (_, res) => {
     questions: [],
     questionIndex: 0,
   };
+
+  await addDocument("games", newGame);
 
   games[roomID] = newGame;
   res.status(200).json(newGame);

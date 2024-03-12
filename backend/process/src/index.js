@@ -5,6 +5,7 @@ import { Server } from "socket.io";
 
 import { PORT } from "./state.js";
 import { registerHandlers } from "./socket/socket.js";
+import db from "./database/firebase.js";
 import router from "./http/routes.js";
 
 const app = express();
