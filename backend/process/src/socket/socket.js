@@ -6,6 +6,7 @@ const ASKING_DURATION_S = 10;
 const VOTING_DURATION_S = 10;
 const RESULT_DURATION_S = 5;
 const NUM_ROUNDS = 2;
+var timer_ref = {};
 
 const fetchQuestions = async (game) => {
   try {
@@ -19,21 +20,28 @@ const fetchQuestions = async (game) => {
     for (let i = 0; i < allQuestions.length; i += game.sockets.length) {
       groupedQuestions.push(allQuestions.slice(i, i + game.sockets.length));
     }
-
+    console.log(groupedQuestions)
+    
+    const users = await getDocuments('users', 'roomID', game.roomID)
+    
     groupedQuestions.forEach((questions) => {
-      game.sockets.forEach((socket, i) => {
-        users[socket].questions.push([
-          questions[i],
-          questions[(i + 1) % questions.length],
-        ]);
+      users.forEach(async (user, i) => {
+        // For each round
+        const question_group = {first: questions[i], second: questions[(i + 1) % questions.length]}
+        user.questions.push(question_group);
+        await updateDocument('users', user.id, user)
       });
     });
-    groupedQuestions.forEach((questions) => {
-      game.questions.push(
-        questions.map((question) => {
-          return { question: question, answers: [] };
+
+    groupedQuestions.forEach(async (questions) => {
+      // Create question object, refer to its id in game object
+      questions.map(async (question) => {
+        const questionID = await addDocument('questions', {
+          question: question, answers: []
         })
-      );
+        game.questions.push(questionID)
+        await updateDocument('games', game.id, game)
+      })
     });
   } catch (error) {
     console.error(error);
@@ -58,18 +66,19 @@ export const registerHandlers = (io, socket) => {
     });
   };
 
-  const updateGameState = (game, newState) => {
+  const updateGameState = async (game, newState) => {
     game.gameState = newState;
+    await updateDocument('games', game.id, game)
     io.to(game.roomID).emit("update_roomState", game.gameState);
   };
 
   const createTimer = (game, duration, callback) => {
     let timer = duration;
     io.to(game.roomID).emit("send_timer", timer--);
-    game.interval = setInterval(() => {
+    timer_ref.interval = setInterval(() => {
       io.to(game.roomID).emit("send_timer", timer--);
       if (timer < 0) {
-        clearInterval(game.interval);
+        clearInterval(timer_ref.interval);
         if (callback !== null) {
           callback();
         }
@@ -86,28 +95,62 @@ export const registerHandlers = (io, socket) => {
     createTimer(game, ASKING_DURATION_S, null);
   };
 
-  const transitionToVoting = (game) => {
+  const transitionToVoting = async (game) => {
+    // Get question object
+    const questions = []
+    console.log("game in transition:")
+    console.log(game)
+
+    for (const id of game.questions) {
+      console.log("in send_answer getting question..")
+      console.log(id)
+      const docs = await getDocuments('questions', 'id', id)
+      console.log("docs:")
+      console.log(docs)
+      const question = docs[0]
+      
+      console.log(question)
+      questions.push(question)
+    }
+
+    console.log("question list retrieved:", questions)
     io.to(game.roomID).emit(
       "send_voteAnswers",
-      game.questions[game.round][game.questionIndex]
+      questions[game.round * 2 + game.questionIndex]
     );
     game.responseCount = 0;
     updateGameState(game, "voting");
     createTimer(game, VOTING_DURATION_S, null);
   };
 
-  const transitionToResults = (game) => {
+  const transitionToResults = async (game) => {
     emitUsers(game);
+    const questions = []
+
+    for (const id of game.questions) {
+      console.log("in send_answer getting question..")
+      console.log(id)
+      const docs = await getDocuments('questions', 'id', id)
+      console.log("docs:")
+      console.log(docs)
+      const question = docs[0]
+      
+      console.log(question)
+      questions.push(question)
+    }
+
+    console.log("before sending vote results")
     io.to(game.roomID).emit(
       "send_voteResults",
-      game.questions[game.round][game.questionIndex].answers
+      questions[game.round * 2 + game.questionIndex].answers
     );
     updateGameState(game, "results");
 
-    createTimer(game, RESULT_DURATION_S, () => {
+    createTimer(game, RESULT_DURATION_S, async () => {
       game.questionIndex += 1;
-      if (game.questionIndex !== game.questions[game.round].length) {
-        transitionToVoting(game);
+      if (game.questionIndex !== 2) {
+        console.log("be")
+        await transitionToVoting(game);
         return;
       }
       game.round += 1;
@@ -163,6 +206,7 @@ export const registerHandlers = (io, socket) => {
       transitionToAsking(game);
     },
     send_answers: async (roomID, answer1, answer2) => {
+      console.log("in send_answers. received: ", roomID, answer1, answer2)
       const docs = await getDocuments('games', 'roomID', roomID)
       // Assuming no roomID dupe entries
       const game = docs[0]
@@ -171,8 +215,32 @@ export const registerHandlers = (io, socket) => {
       const answers = [answer1, answer2];
 
       game.responseCount += 1;
-      game.questions[game.round].forEach((question) => {
-        answers.forEach((answer) => {
+
+      const questions = []
+      
+      for (const id of game.questions) {
+        console.log("in send_answer getting question..")
+        console.log(id)
+        const docs = await getDocuments('questions', 'id', id)
+        console.log("docs:")
+        console.log(docs)
+        const question = docs[0]
+        
+        console.log(question)
+        questions.push(question)
+      }
+      
+      console.log("questions")
+      console.log(questions)
+      console.log(game.round * 2 , (game.round+1) * 2)
+
+      const parsed_questions = questions.slice(game.round * 2 , (game.round+1) * 2)
+      for (const question of parsed_questions) {
+        for (const answer of answers) {
+          console.log("---------")
+          console.log("in loop")
+          console.log(question)
+          console.log(answer)
           if (question.question === answer.question) {
             question.answers.push({
               username: user.username,
@@ -181,12 +249,17 @@ export const registerHandlers = (io, socket) => {
               score: 0,
             });
           }
-        });
-      });
-
+          console.log(question)
+          await updateDocument('questions', question.id, question)
+        }
+      }
+      await updateDocument('games', game.id, game)
+      console.log(game.responseCount)
       if (game.responseCount === game.sockets.length) {
-        clearInterval(game.interval);
-        transitionToVoting(game);
+        clearInterval(timer_ref.interval);
+        console.log("Hi")
+        console.log(game)
+        await transitionToVoting(game);
       }
     },
     send_vote: async(roomID, vote) => {
@@ -196,13 +269,28 @@ export const registerHandlers = (io, socket) => {
       const docs = await getDocuments('games', 'roomID', roomID)
       // Assuming no roomID dupe entries
       const game = docs[0]
-      const answers = game.questions[game.round][game.questionIndex].answers;
+
+      const questions = []
+
+      for (const id of game.questions) {
+        console.log("in send_vote getting question..")
+        console.log(id)
+        const docs = await getDocuments('questions', 'id', id)
+        const question = docs[0]
+        
+        console.log(question)
+        questions.push(question)
+      }
+
+      const answers = questions[game.round * 2 + game.questionIndex].answers;
 
       game.responseCount += 1;
       answers[vote].votes += 1;
-
+      console.log(game.responseCount)
+      console.log(game.sockets.length)
+      await updateDocument('games', game.id, game)
       if (game.responseCount === game.sockets.length) {
-        clearInterval(game.interval);
+        clearInterval(timer_ref.interval);
         const users = await getDocuments('users', 'roomID', roomID)
         users.forEach(async (user) => {
           answers.forEach((answer) => {
@@ -257,7 +345,7 @@ export const registerHandlers = (io, socket) => {
         await updateDocument('users', newLeaderUser.id, newLeaderUser)
         io.to(newLeaderID).emit("select_leader");
       }
-      emitUsers(games[roomID]);
+      emitUsers(game);
     },
   };
 

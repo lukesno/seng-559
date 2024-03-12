@@ -5,7 +5,9 @@ import { collection, doc, addDoc, deleteDoc, updateDoc, getDocs, query, where } 
 async function addDocument(collectionName, data) {
     try {
       const docRef = await addDoc(collection(db, collectionName), data);
-      console.log(`Document written to ${collectionName} with ID: `, docRef.id);
+      await updateDoc(doc(db, collectionName, docRef.id), {
+        id: docRef.id
+      });
       return docRef.id; 
     } catch (e) {
       console.error("Error adding document: ", e);
