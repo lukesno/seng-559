@@ -320,6 +320,7 @@ export const registerHandlers = (io, socket) => {
 
       // Again assuming that there is a unique socket id for each user
       const disconnectUser = users[0]
+      const disconnectUserSocket = disconnectUser.socketID
       const roomID = disconnectUser.roomID;
       console.log(`${PORT}: ${disconnectUser.username} left room ${roomID}`);
 
@@ -327,10 +328,18 @@ export const registerHandlers = (io, socket) => {
       const docs = await getDocuments('games', 'roomID', roomID)
       // Assuming no roomID dupe entries
       const game = docs[0]
-      if (game.sockets.length === 1) {
-        await deleteDocument('games', roomID)
+      console.log("Checking deleted user id")
+      console.log(disconnectUserSocket)
+      console.log(game.sockets)
+      const new_sockets = game.sockets.filter(id => id !== disconnectUserSocket);
+      console.log(new_sockets)
+      console.log(new_sockets.length)
+      if (new_sockets.length === 1) {
+        await deleteDocument('games', game.id)
         return;
       }
+      game.sockets = new_sockets
+      await updateDocument('games', game.id, game)
 
       game.sockets = game.sockets.filter(
         (gameUserSocketID) => gameUserSocketID != socket.id
