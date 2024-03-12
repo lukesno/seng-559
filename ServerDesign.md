@@ -99,25 +99,29 @@ answer{
 }
 
 question{
+	"id": string
 	"question": string
 	"answers": answer[]
 }
 
 game{
+	"id": string
     "roomID": string,
     "url": string,
 	"gameState": string,
-    "sockets": string[],
+    "sockets": string[], // array of socket_id
     "interval": any, // id of current timer
 	"round": number,
     "responseCount": number,
-    "questions": question[],
+    "questions": string[], // array of question ids
     "questionIndex": number
 }
 
 user{
+	"id": string
 	"username": string,
 	"roomID": string,
+	"socketID": string,
 	"isLeader": boolean,
 	"questions": string[]
 	"submitted": boolean

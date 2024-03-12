@@ -39,13 +39,15 @@ function Lobby() {
       setLobbyState(state);
     },
     send_questions: (questions) => {
-      setQuestions(questions);
+      console.log(questions)
+      setQuestions([questions['first'], questions['second']]);
     },
     send_voteAnswers: (voteAnswers) => {
       setVoteQuestion(voteAnswers.question);
       setVoteAnswers(voteAnswers.answers);
     },
     send_voteResults: (voteResults) => {
+      console.log("In send vote results")
       setVoteAnswers(voteResults);
     },
     send_timer: (time) => {
