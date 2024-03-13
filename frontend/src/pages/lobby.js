@@ -5,13 +5,13 @@ import { useAppContext } from "../AppContext";
 import Axios from "axios";
 // Screens
 import { WaitingScreen, AskingScreen, VotingScreen, ResultsScreen, FinalResultsScreen } from "./states";
-
+import { setUserID, getUserID } from "../auth-id"
 
 let socket = io();
 
 function Lobby() {
   const navigate = useNavigate(); // Initialize useNavigate
-  const { username, roomID, roomURL, setRoomID, setRoomURL, setUserID } = useAppContext();
+  const { username, roomID, roomURL, setRoomID, setRoomURL} = useAppContext();
 
   const [timer, setTimer] = useState(0);
   const [isLeader, setIsLeader] = useState(false);
@@ -25,6 +25,11 @@ function Lobby() {
   const handlers = {
     connect: () => {
       console.log(`Connected to socket!`);
+
+      if (!getUserID()) { 
+        console.log("Setting user ID")
+        setUserID(socket.id)
+      }
     },
     update_users: (users) => {
       setUsers(users);
@@ -55,7 +60,7 @@ function Lobby() {
     },
     disconnect: (data) => {
       // Logic for restarting protocol starts here
-      // restart(roomID)
+      restart(roomID)
       console.log(data)
       console.log("Disconnected from socket!");
 
@@ -84,14 +89,13 @@ function Lobby() {
     }
   };
 
-  useEffect(() => {
+  useEffect(() => {    
     // Go back to home page if there is no URL (happens on refresh)
     if (roomURL === "") {
       navigate("/");
     }
-
+    
     socket = io.connect(roomURL);
-    setUserID(socket.id)
     registerHandlers();
     socket.emit("join_game", roomID, username);
 
