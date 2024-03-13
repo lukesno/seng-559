@@ -202,6 +202,7 @@ export const registerHandlers = (io, socket) => {
       const docs = await getDocuments('games', 'roomID', roomID)
       // Assuming no roomID dupe entries
       const game = docs[0]
+      console.log("logging GAME:" + game)
       await fetchQuestions(game);
       transitionToAsking(game);
     },
@@ -328,13 +329,16 @@ export const registerHandlers = (io, socket) => {
       const docs = await getDocuments('games', 'roomID', roomID)
       // Assuming no roomID dupe entries
       const game = docs[0]
+
       console.log("Checking deleted user id")
       console.log(disconnectUserSocket)
       console.log(game.sockets)
       const new_sockets = game.sockets.filter(id => id !== disconnectUserSocket);
+
       console.log(new_sockets)
       console.log(new_sockets.length)
-      if (new_sockets.length === 1) {
+
+      if (new_sockets.length === 0) {
         await deleteDocument('games', game.id)
         return;
       }
@@ -348,8 +352,11 @@ export const registerHandlers = (io, socket) => {
       // if disconnecting user is leader, change leader
       if (disconnectUser.isLeader) {
         const newLeaderID = game.sockets[0];
-        const users = getDocuments('users', 'socketID', newLeaderID)
+        const users = await getDocuments('users', 'socketID', newLeaderID)
+
         const newLeaderUser = users[0]
+        console.log("leader left, new lobby leader: " + newLeaderUser)
+    
         newLeaderUser.isLeader = true;
         await updateDocument('users', newLeaderUser.id, newLeaderUser)
         io.to(newLeaderID).emit("select_leader");

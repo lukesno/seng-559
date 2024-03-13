@@ -9,10 +9,6 @@ function Home() {
     useAppContext();
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    setRoomURL("");
-  }, [])
-
   const create = async () => {
     try {
       const response = await Axios.get("http://localhost:8080/create");
@@ -31,6 +27,7 @@ function Home() {
         roomID,
       });
       const { url } = response.data;
+      console.log("response data")
       console.log(response.data);
       setRoomURL(url);
       navigate(`lobby/${roomID}`);
@@ -57,7 +54,8 @@ function Home() {
       />
       <div>
         <label>Create a Room: </label>
-        <button onClick={create}>Create</button>
+        <button onClick={create}
+         disabled={!username.length}>Create</button>
       </div>
       <div>
         <label>Join a Room: </label>
@@ -69,7 +67,8 @@ function Home() {
             setRoomID(event.target.value);
           }}
         />
-        <button onClick={join}>Join</button>
+        <button onClick={join}
+         disabled={!username.length}>Join</button>
         {error && <p>{error}</p>}
       </div>
     </div>

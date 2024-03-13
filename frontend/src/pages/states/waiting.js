@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { useAppContext } from "../../AppContext";
 export function WaitingScreen({ isLeader, roomID, users, sendStartGame }) {
   const navigate = useNavigate(); // Initialize useNavigate
-  const { setRoomID } = useAppContext();
+  const { setRoomID, setRoomURL } = useAppContext();
   
   function onGoBack() {
     setRoomID("")
+    setRoomURL("")
     navigate("/")
   }
 

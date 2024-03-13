@@ -1,5 +1,7 @@
-# CPSC-559 Project
-QuipLash type beat.
+# RipLash 
+
+**CPSC-559 Project**
+
 | Names | UCID |
 |----------|----------|
 |Amanda Nguyen|30097520|

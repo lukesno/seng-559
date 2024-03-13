@@ -11,7 +11,7 @@ let socket = io();
 
 function Lobby() {
   const navigate = useNavigate(); // Initialize useNavigate
-  const { username, roomID, roomURL, setRoomID, setRoomURL } = useAppContext();
+  const { username, roomID, roomURL, setRoomID, setRoomURL, setUserID } = useAppContext();
 
   const [timer, setTimer] = useState(0);
   const [isLeader, setIsLeader] = useState(false);
@@ -53,10 +53,10 @@ function Lobby() {
     send_timer: (time) => {
       setTimer(time);
     },
-    disconnect: () => {
-      // For now if this event is emitted,
-      // something most likely went wrong with the server socket connection
-      restart(roomID)
+    disconnect: (data) => {
+      // Logic for restarting protocol starts here
+      // restart(roomID)
+      console.log(data)
       console.log("Disconnected from socket!");
 
     }
@@ -91,6 +91,7 @@ function Lobby() {
     }
 
     socket = io.connect(roomURL);
+    setUserID(socket.id)
     registerHandlers();
     socket.emit("join_game", roomID, username);
 
