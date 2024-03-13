@@ -25,11 +25,6 @@ function Lobby() {
   const handlers = {
     connect: () => {
       console.log(`Connected to socket!`);
-
-      if (!getUserID()) { 
-        console.log("Setting user ID")
-        setUserID(socket.id)
-      }
     },
     update_users: (users) => {
       setUsers(users);
@@ -60,10 +55,14 @@ function Lobby() {
     },
     disconnect: (data) => {
       // Logic for restarting protocol starts here
-      restart(roomID)
+      // restart(roomID)
       console.log(data)
       console.log("Disconnected from socket!");
 
+    },
+    updateUserID: (id) => {
+      console.log('updating user id: ' + id)
+      setUserID(id)
     }
   };
   const restart = async (oldRoomID) => {
@@ -97,7 +96,7 @@ function Lobby() {
     
     socket = io.connect(roomURL);
     registerHandlers();
-    socket.emit("join_game", roomID, username);
+    socket.emit("join_game", roomID, username, getUserID())
 
     return () => {
       deregisterHandlers();

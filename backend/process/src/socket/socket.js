@@ -21,13 +21,13 @@ const fetchQuestions = async (game) => {
       groupedQuestions.push(allQuestions.slice(i, i + game.sockets.length));
     }
     console.log(groupedQuestions)
-    
+
     const users = await getDocuments('users', 'roomID', game.roomID)
-    
+
     groupedQuestions.forEach((questions) => {
       users.forEach(async (user, i) => {
         // For each round
-        const question_group = {first: questions[i], second: questions[(i + 1) % questions.length]}
+        const question_group = { first: questions[i], second: questions[(i + 1) % questions.length] }
         user.questions.push(question_group);
         await updateDocument('users', user.id, user)
       });
@@ -108,7 +108,7 @@ export const registerHandlers = (io, socket) => {
       console.log("docs:")
       console.log(docs)
       const question = docs[0]
-      
+
       console.log(question)
       questions.push(question)
     }
@@ -134,7 +134,7 @@ export const registerHandlers = (io, socket) => {
       console.log("docs:")
       console.log(docs)
       const question = docs[0]
-      
+
       console.log(question)
       questions.push(question)
     }
@@ -168,7 +168,7 @@ export const registerHandlers = (io, socket) => {
   };
 
   const handlers = {
-    join_game: async (roomID, username) => {
+    join_game: async (roomID, username, userID = '') => {
       const docs = await getDocuments('games', 'roomID', roomID)
       // Assuming no roomID dupe entries
       const game = docs[0]
@@ -176,24 +176,54 @@ export const registerHandlers = (io, socket) => {
       if (!game) {
         return;
       }
-      const isLeader = game.sockets.length === 0;
-      const user = {
-        // User identified by socketID
-        socketID: socket.id,
-        username: username,
-        roomID: roomID,
-        isLeader: isLeader,
-        questions: [],
-        submitted: false,
-        score: 0,
-      };
-      await addDocument("users", user);
-      game.sockets.push(socket.id);
+
+      let socketID = socket.id;
+      let savedUsers = []
+      if (userID) {
+        socketID = userID
+        savedUsers = await getDocuments('users', 'socketID', socketID)
+      }
+
+      if (savedUsers.length > 0) {
+        console.log('FOUND USER')
+        
+        // Removing old socketID
+        const userIndex = game.sockets.indexOf(socketID);
+        if (userIndex > -1) {
+          game.sockets.splice(userIndex, 1);
+        }
+        const user = savedUsers[0]
+        user.socketID = socket.id
+        await updateDocument("users", user.id, user)
+        
+      } else {
+        // User does not exist
+        socketID = socket.id
+        const isLeader = game.sockets.length === 0;
+        if (isLeader) {
+          io.to(socketID).emit("select_leader");
+        }
+        
+        const user = {
+          socketID,
+          username: username,
+          roomID: roomID,
+          isLeader: isLeader,
+          questions: [],
+          submitted: false,
+          score: 0,
+        }
+        await addDocument("users", user)
+      }
+      
+      
+      io.to(socket.id).emit("updateUserID", socket.id)
+      game.sockets.push(socketID);
+      
       await updateDocument("games", game.id, game)
       socket.join(roomID);
-      if (isLeader) {
-        io.to(socket.id).emit("select_leader");
-      }
+
+
       emitUsers(game);
       console.log(`${PORT}: ${username} joined room ${roomID}`);
     },
@@ -218,7 +248,7 @@ export const registerHandlers = (io, socket) => {
       game.responseCount += 1;
 
       const questions = []
-      
+
       for (const id of game.questions) {
         console.log("in send_answer getting question..")
         console.log(id)
@@ -226,16 +256,16 @@ export const registerHandlers = (io, socket) => {
         console.log("docs:")
         console.log(docs)
         const question = docs[0]
-        
+
         console.log(question)
         questions.push(question)
       }
-      
+
       console.log("questions")
       console.log(questions)
-      console.log(game.round * 2 , (game.round+1) * 2)
+      console.log(game.round * 2, (game.round + 1) * 2)
 
-      const parsed_questions = questions.slice(game.round * 2 , (game.round+1) * 2)
+      const parsed_questions = questions.slice(game.round * 2, (game.round + 1) * 2)
       for (const question of parsed_questions) {
         for (const answer of answers) {
           console.log("---------")
@@ -263,7 +293,7 @@ export const registerHandlers = (io, socket) => {
         await transitionToVoting(game);
       }
     },
-    send_vote: async(roomID, vote) => {
+    send_vote: async (roomID, vote) => {
       const users = await getDocuments('users', 'socketID', socket.id)
       const user = users[0];
       console.log(`${PORT}: ${user.username} voted for ${vote}`);
@@ -278,7 +308,7 @@ export const registerHandlers = (io, socket) => {
         console.log(id)
         const docs = await getDocuments('questions', 'id', id)
         const question = docs[0]
-        
+
         console.log(question)
         questions.push(question)
       }
@@ -356,7 +386,7 @@ export const registerHandlers = (io, socket) => {
 
         const newLeaderUser = users[0]
         console.log("leader left, new lobby leader: " + newLeaderUser)
-    
+
         newLeaderUser.isLeader = true;
         await updateDocument('users', newLeaderUser.id, newLeaderUser)
         io.to(newLeaderID).emit("select_leader");
