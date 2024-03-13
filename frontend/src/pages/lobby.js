@@ -52,6 +52,18 @@ function Lobby() {
     },
     send_timer: (time) => {
       setTimer(time);
+    },
+    disconnect: (data) => {
+      // Logic for restarting protocol starts here
+      restart(roomID)
+      // restart(roomID)
+      console.log(data)
+      console.log("Disconnected from socket!");
+
+    },
+    updateUserID: (id) => {
+      console.log('updating user id: ' + id)
+      setUserID(id)
     }
   };
   const restart = async (oldRoomID) => {
