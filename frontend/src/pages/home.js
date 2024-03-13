@@ -71,6 +71,7 @@ function Home() {
               <button
                 className="rounded p-1 bg-whiterounded drop-shadow-lg border-primary border-b-2 border bg-white hover:bg-ternary"
                 onClick={create}
+                disabled={!username}
               >
                 <span className="uppercase font-bold text-xs">Create</span>
               </button>
@@ -90,6 +91,7 @@ function Home() {
                 <button
                   className="inline-block rounded p-1 bg-whiterounded border-primary border-b-2 border bg-white hover:bg-ternary"
                   onClick={join}
+                  disabled={!username}
                 >
                   <span className="uppercase font-bold text-xs">Join</span>
                 </button>
