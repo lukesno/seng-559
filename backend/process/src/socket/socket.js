@@ -1,4 +1,10 @@
 import { users, games, PORT } from "../state.js";
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: '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'
+});
+
 
 const POINTS_PER_ROUND = 1000;
 const ASKING_DURATION_S = 10;
@@ -8,11 +14,12 @@ const NUM_ROUNDS = 2;
 
 const fetchQuestions = async (game) => {
   try {
-    const response = await fetch(
-      `https://opentdb.com/api.php?amount=${game.sockets.length * NUM_ROUNDS}`
-    );
-    const response_json = await response.json();
-    const allQuestions = response_json.results.map((item) => item.question);
+    const response = await openai.chat.completions.create({
+      messages: [{ role: "system", content: "You are a helpful assistant.", 
+                  role: "user", content: "Can you please generate 5 prompt similar to the prompts from the game cards against humanity? Just provide the prompt, don't add any additional words to the response and do not ask if we want another prompt"}],
+      model: "gpt-3.5-turbo",
+    });
+    const allQuestions = (response.choices[0].message.content).split("\n");
     const groupedQuestions = [];
     for (let i = 0; i < allQuestions.length; i += game.sockets.length) {
       groupedQuestions.push(allQuestions.slice(i, i + game.sockets.length));
