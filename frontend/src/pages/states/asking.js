@@ -13,5 +13,3 @@ export function AskingScreen({ questions, sendAnswers, timer }) {
     </div>
   );
 }
-
-

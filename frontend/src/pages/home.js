@@ -11,7 +11,7 @@ function Home() {
 
   useEffect(() => {
     setRoomURL("");
-  }, [])
+  }, []);
 
   const create = async () => {
     try {
@@ -44,33 +44,41 @@ function Home() {
   };
 
   return (
-    <div>
-      <h1>RipLash</h1>
-      <label>Username: </label>
-      <input
-        type="text"
-        placeholder="Username"
-        value={username}
-        onChange={(event) => {
-          setUsername(event.target.value);
-        }}
-      />
-      <div>
-        <label>Create a Room: </label>
-        <button onClick={create}>Create</button>
-      </div>
-      <div>
-        <label>Join a Room: </label>
-        <input
-          type="text"
-          placeholder="Room Code"
-          value={roomID}
-          onChange={(event) => {
-            setRoomID(event.target.value);
-          }}
-        />
-        <button onClick={join}>Join</button>
-        {error && <p>{error}</p>}
+    <div className="h-screen grid place-items-center">
+      <div className="shadow-inner rounded-lg p-0.5">
+        <div className="py-12 rounded-lg shadow grid grid-cols-2 grid-rows-3 place-items-center gap-4">
+          <div className="col-span-2 row-span-1 justify-self-center">
+            <h1 className="font-bold text-5xl">RipLash</h1>
+          </div>
+          <div className="col-span-2 row-span-1">
+            <label>Username: </label>
+            <input
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(event) => {
+                setUsername(event.target.value);
+              }}
+            />
+          </div>
+          <div className="col-span-1 row-span-1">
+            <label>Create a Room: </label>
+            <button onClick={create}>Create</button>
+          </div>
+          <div className="col-span-1 row-span-1">
+            <label>Join a Room: </label>
+            <input
+              type="text"
+              placeholder="Room Code"
+              value={roomID}
+              onChange={(event) => {
+                setRoomID(event.target.value);
+              }}
+            />
+            <button onClick={join}>Join</button>
+            {error && <p>{error}</p>}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -25,4 +25,3 @@ export function WaitingScreen({ isLeader, roomID, users, sendStartGame }) {
     </div>
   );
 }
-

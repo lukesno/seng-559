@@ -22,4 +22,3 @@ export function ResultsScreen({ voteQuestion, voteAnswers, users, timer }) {
     </div>
   );
 }
-
