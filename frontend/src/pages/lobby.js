@@ -7,7 +7,7 @@ import Axios from "axios";
 import { WaitingScreen, AskingScreen, VotingScreen, ResultsScreen, FinalResultsScreen } from "./states";
 import { setUserID, getUserID } from "../auth-id"
 
-let socket = io();
+let socket = null;
 
 function Lobby() {
   const navigate = useNavigate(); // Initialize useNavigate
@@ -52,17 +52,6 @@ function Lobby() {
     },
     send_timer: (time) => {
       setTimer(time);
-    },
-    disconnect: (data) => {
-      // Logic for restarting protocol starts here
-      // restart(roomID)
-      console.log(data)
-      console.log("Disconnected from socket!");
-
-    },
-    updateUserID: (id) => {
-      console.log('updating user id: ' + id)
-      setUserID(id)
     }
   };
   const restart = async (oldRoomID) => {
@@ -117,7 +106,7 @@ function Lobby() {
       "send_answers",
       roomID,
       { question: questions[0], answer: `${username}: answer1` },
-      { question: questions[1], answer: `${username}: answer2` }
+      { question: questions[1], answer: `${username}: answer2` },
     );
   };
 
@@ -137,7 +126,13 @@ function Lobby() {
           />
         );
       case "asking":
-        return <AskingScreen questions={questions} sendAnswers={sendAnswers} timer={timer}/>;
+        return (
+          <AskingScreen
+            questions={questions}
+            sendAnswers={sendAnswers}
+            timer={timer}
+          />
+        );
       case "voting":
         return (
           <VotingScreen
@@ -157,7 +152,7 @@ function Lobby() {
           />
         );
       case "finalResults":
-        return (<FinalResultsScreen users={users}/>)
+        return <FinalResultsScreen users={users} />;
       default:
         return <p>Error: Lobby unavailable or in unknown state.</p>;
     }
