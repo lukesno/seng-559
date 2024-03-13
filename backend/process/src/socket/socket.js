@@ -16,7 +16,7 @@ const fetchQuestions = async (game) => {
   try {
     const response = await openai.chat.completions.create({
       messages: [{ role: "system", content: "You are a helpful assistant.", 
-                  role: "user", content: "Can you please generate 6 prompt similar to the prompts from the game cards against humanity? Just provide the prompt, don't add any additional words to the response and do not ask if we want another prompt"}],
+                  role: "user", content: "Can you please generate 6 prompt similar to the prompts from the game cards against humanity? Just provide the prompts, don't add any additional words to the response and do not ask if we want another prompt"}],
       model: "gpt-3.5-turbo",
     });
     const allQuestions = (response.choices[0].message.content).split("\n");
