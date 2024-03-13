@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.primary-text{
+    @apply  font-bold text-xl text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)]
+}
+
+.primary-input{
+    @apply rounded bg-ternary text-white p-1 focus:bg-secondary focus:outline-0 placeholder-white/30
+}

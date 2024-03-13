@@ -4,7 +4,16 @@ module.exports = {
   theme: {
     extend: {
       backgroundImage: {
-        background: "url('./background.png')",
+        background: "url('./img/background.png')",
+      },
+      colors: {
+        primary: "#30024f",
+        secondary: "#7b2879",
+        ternary: "#a86b9e",
+        action: "#58ffb6",
+      },
+      fontFamily: {
+        nunito: ["nunito"],
       },
     },
   },

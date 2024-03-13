@@ -9,7 +9,7 @@ import AppContext from "./AppContext";
 function App() {
   return (
     <Router>
-      <div className="App bg-background bg-cover bg-center">
+      <div className="App bg-background bg-cover bg-center font-nunito">
         <AppContext>
           <Routes>
             <Route path="/" exact element={<Home />} />

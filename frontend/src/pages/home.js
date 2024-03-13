@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import Axios from "axios";
 import { useAppContext } from "../AppContext";
+import logo from "../img/logo.svg";
+import kirby from "../img/kirby.gif";
 
 function Home() {
   const navigate = useNavigate(); // Initialize useNavigate
@@ -45,38 +47,57 @@ function Home() {
 
   return (
     <div className="h-screen grid place-items-center">
-      <div className="shadow-inner rounded-lg p-0.5">
-        <div className="py-12 rounded-lg shadow grid grid-cols-2 grid-rows-3 place-items-center gap-4">
-          <div className="col-span-2 row-span-1 justify-self-center">
-            <h1 className="font-bold text-5xl">RipLash</h1>
+      <div className="shadow-[inset_0_2px_4px_0_rgb(0,0,0,0.25)] rounded-lg p-1">
+        <div className="p-8 rounded-lg shadow-[0_2px_4px_0_rgb(0,0,0,0.25)] grid grid-cols-3 grid-rows-3 place-items-center">
+          <div className="col-span-3 row-span-1 place-self-center">
+            <img src={logo} className="place-self-center max-w-80" />
           </div>
           <div className="col-span-2 row-span-1">
-            <label>Username: </label>
+            <label className="primary-text">Username: </label>
             <input
+              className="primary-input ml-2"
               type="text"
-              placeholder="Username"
+              placeholder="coolguy69"
               value={username}
               onChange={(event) => {
                 setUsername(event.target.value);
               }}
             />
           </div>
-          <div className="col-span-1 row-span-1">
-            <label>Create a Room: </label>
-            <button onClick={create}>Create</button>
+          <div className="col-span-2 row-span-1 flex justify-between gap-8">
+            <div className="flex flex-col">
+              <h2 className="primary-text">Create a Room</h2>
+              <button
+                className="rounded p-1 bg-whiterounded drop-shadow-lg border-primary border-b-2 border bg-white hover:bg-ternary"
+                onClick={create}
+              >
+                <span className="uppercase font-bold text-xs">Create</span>
+              </button>
+            </div>
+            <div className="flex flex-col items-center">
+              <h2 className="primary-text">Join a Room</h2>
+              <div className="rounded overflow-hidden">
+                <input
+                  className="primary-input inline-block w-28"
+                  type="text"
+                  placeholder="Room Code"
+                  value={roomID}
+                  onChange={(event) => {
+                    setRoomID(event.target.value);
+                  }}
+                />
+                <button
+                  className="inline-block rounded p-1 bg-whiterounded border-primary border-b-2 border bg-white hover:bg-ternary"
+                  onClick={join}
+                >
+                  <span className="uppercase font-bold text-xs">Join</span>
+                </button>
+              </div>
+              {error && <p>{error}</p>}
+            </div>
           </div>
-          <div className="col-span-1 row-span-1">
-            <label>Join a Room: </label>
-            <input
-              type="text"
-              placeholder="Room Code"
-              value={roomID}
-              onChange={(event) => {
-                setRoomID(event.target.value);
-              }}
-            />
-            <button onClick={join}>Join</button>
-            {error && <p>{error}</p>}
+          <div className="col-start-3 col-end-4 row-start-2 row-end-4 place-self-centerp-10">
+            <img className="w-48" src={kirby} />
           </div>
         </div>
       </div>
