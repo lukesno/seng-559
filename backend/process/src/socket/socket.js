@@ -164,6 +164,7 @@ export const registerHandlers = (io, socket) => {
       };
 
       addUser(socket.id, newUser);
+      io.to(socket.id).emit("updateSocketID", socket.id);
       game.sockets.push(socket.id);
       syncGame(roomID);
 
@@ -178,6 +179,17 @@ export const registerHandlers = (io, socket) => {
       console.log(`${PORT}: Start game ${roomID}`);
       await fetchQuestions(roomID);
       transitionToAsking(roomID);
+    },
+    update_socket_id: (roomID, oldSocketID, newSocketID) => {
+      users[newSocketID] = users[oldSocketID];
+      deleteUser(oldSocketID);
+      console.log("before update: ")
+      console.log(games[roomID].sockets);
+      games[roomID].sockets = games[roomID].sockets.map((socketID) => {
+        return socketID === oldSocketID ? newSocketID : socketID;
+      })
+      console.log("after update: ")
+      console.log(games[roomID].sockets);
     },
     send_answers: (roomID, answer1, answer2) => {
       const game = games[roomID];

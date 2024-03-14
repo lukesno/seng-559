@@ -10,10 +10,10 @@ function AppContext({ children }) {
   const [username, setUsername] = useState("");
   const [roomID, setRoomID] = useState("");
   const [roomURL, setRoomURL] = useState("");
-
+  const [socketID, setSocketID] = useState("");
   return (
     <Context.Provider
-      value={{ username, setUsername, roomID, setRoomID, roomURL, setRoomURL }}
+      value={{ username, setUsername, roomID, setRoomID, roomURL, setRoomURL, socketID, setSocketID}}
     >
       {children}
     </Context.Provider>

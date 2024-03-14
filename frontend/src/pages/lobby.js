@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { useAppContext } from "../AppContext";
-
+import Axios from "axios";
 // Screens
 import { WaitingScreen, AskingScreen, VotingScreen, ResultsScreen, FinalResultsScreen } from "./states";
 
@@ -11,7 +11,7 @@ let socket = io();
 
 function Lobby() {
   const navigate = useNavigate(); // Initialize useNavigate
-  const { username, roomID, roomURL } = useAppContext();
+  const { username, roomID, roomURL,socketID, setSocketID, setRoomURL } = useAppContext();
 
   const [timer, setTimer] = useState(0);
   const [isLeader, setIsLeader] = useState(false);
@@ -50,8 +50,31 @@ function Lobby() {
     },
     send_timer: (time) => {
       setTimer(time);
+    },
+    disconnect: () => {
+      console.log("client disconnected");
+      restart(roomID, socketID)
+    },
+    updateSocketID: (socketID) => {
+      setSocketID(socketID)
+      console.log(`updated SocketID: ${socketID}`);
     }
   };
+  const restart = async (roomID, oldSocketID) => {
+    try {
+      console.log('restart')
+      const response = await Axios.post(`http://localhost:8080/restart?roomID=${roomID}`);
+      const { url } = response.data;
+      console.log(`url: ${url}`)
+      setRoomURL(url);
+      socket = io.connect(roomURL);
+      registerHandlers();
+      // delete old user, and add new user with same stat
+      // socket.emit("update_socket_id", roomID, oldSocketID, socket.id)
+    } catch (error) {
+      console.error("Error restarting room: ", error);
+    }
+  }
 
   const registerHandlers = () => {
     for (let handle in handlers) {
