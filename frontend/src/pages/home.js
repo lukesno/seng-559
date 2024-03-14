@@ -46,68 +46,65 @@ function Home() {
   };
 
   return (
-    <div className='min-h-screen text-white flex flex-col items-center justify-center'>
-      <h1 className='text-4xl font-bold mb-8 text-purple-300'>
-        <div className='col-span-3 row-span-1 place-self-center'>
-          <img src={logo} className='place-self-center max-w-80' />
-        </div>
-      </h1>
-
-      <div className='w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-lg'>
-        <div className='mb-4'>
-          <label className='primary-text'>Username: </label>
-          <input
-            className='w-full p-2 text-black rounded-md'
-            type='text'
-            placeholder='Enter your username'
-            value={username}
-            onChange={(event) => {
-              setUsername(event.target.value);
-            }}
-          />
-        </div>
-
-        <div className='mb-4 flex justify-between items-center'>
-          <div className='flex-1 mr-2'>
-            <label className='block text-sm font-medium mb-2'>
-              Create a Room:
-            </label>
-            <button
-              className='w-full text-white bg-blue-500 rounded-md p-2 hover:bg-blue-700 transition duration-300 ease-in-out transform hover:-translate-y-1 shadow-lg'
-              onClick={create}
-            >
-              Create
-            </button>
+    <div className="h-screen grid place-items-center">
+      <div className="shadow-[inset_0_2px_4px_0_rgb(0,0,0,0.25)] rounded-lg p-1">
+        <div className="p-8 rounded-lg shadow-[0_2px_4px_0_rgb(0,0,0,0.25)] grid grid-cols-3 grid-rows-3 place-items-center bg-primary/30">
+          <div className="col-span-3 row-span-1 place-self-center">
+            <img src={logo} className="place-self-center max-w-80" />
           </div>
-
-          <div className='flex-1 ml-2'>
-            <label className='block text-sm font-medium mb-2'>
-              Join a Room:
-            </label>
-            <div className='flex'>
-              <input
-                className='flex-1 p-2 rounded-l-md text-black'
-                type='text'
-                placeholder='Room Code'
-                value={roomID}
-                onChange={(event) => {
-                  setRoomID(event.target.value);
-                }}
-              />
+          <div className="col-span-2 row-span-1">
+            <label className="primary-text">Username: </label>
+            <input
+              className="primary-input rounded-xl ml-2"
+              type="text"
+              placeholder="coolguy69"
+              value={username}
+              onChange={(event) => {
+                setUsername(event.target.value);
+              }}
+            />
+          </div>
+          <div className="col-span-2 row-span-1 flex justify-between gap-8">
+            <div className="flex flex-col">
+              <h2 className="primary-text">Create a Room</h2>
               <button
-                className='bg-green-500 rounded-r-md p-2 hover:bg-green-700 transition duration-300 ease-in-out'
-                onClick={join}
+                className="text-white px-6 py-2 rounded-full font-semibold transition duration-300 ease-in-out shadow-lg hover:shadow-xl bg-green-500 hover:bg-green-700"
+                onClick={create}
               >
-                Join
+                Create
               </button>
             </div>
+            <div className="flex flex-col items-center">
+              <h2 className="primary-text">Join a Room</h2>
+              <div className="rounded-xl overflow-hidden">
+                <input
+                  className="primary-input inline-block w-28 h-full"
+                  type="text"
+                  placeholder="Room Code"
+                  value={roomID}
+                  onChange={(event) => {
+                    setRoomID(event.target.value);
+                  }}
+                  maxLength={4}
+                />
+                <button
+                  className="text-white px-6 py-2 font-semibold transition duration-300 ease-in-out shadow-lg hover:shadow-xl bg-green-500 hover:bg-green-700"
+                  onClick={join}
+                >
+                  Join
+                </button>
+              </div>
+              {error && (
+                <p className="text-red-500 uppercase font-bold text-s mt-5">
+                  {error}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="col-start-3 col-end-4 row-start-2 row-end-4 place-self-centerp-10">
+            <img className="w-48" src={kirby} />
           </div>
         </div>
-
-        {error && <p className='text-red-400 text-xs mt-2'>{error}</p>}
-      </div>
-      <div className='col-start-3 col-end-4 row-start-2 row-end-4 place-self-centerp-10'>
-        <img className='w-48' src={kirby} />
       </div>
     </div>
   );
