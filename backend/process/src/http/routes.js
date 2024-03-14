@@ -1,5 +1,5 @@
 import express from "express";
-import { games, URL, PORT } from "../state.js";
+import { games, URL, PORT, addGame } from "../state.js";
 import { customAlphabet } from "nanoid";
 
 const nanoid = customAlphabet("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ", 4);
@@ -12,14 +12,13 @@ router.get("/create", (_, res) => {
     url: `${URL}:${PORT}`,
     sockets: [],
     gameState: "waiting",
-    interval: null,
     round: 0,
     responseCount: 0,
-    questions: [],
+    questions: {},
     questionIndex: 0,
   };
 
-  games[roomID] = newGame;
+  addGame(roomID, newGame);
   res.status(200).json(newGame);
 });
 
