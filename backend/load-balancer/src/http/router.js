@@ -50,10 +50,7 @@ router.post("/restart", async (req, res) => {
   console.log('inside router /restart')
   const { roomID } = req.query;
   console.log(`Restarting game, and query: ${roomID}`)
-  let game = runningGames.find((game) => game.roomID === roomID);
-  if (game) {
-    res.status(200).send(game);
-  } 
+
   // create a new game with same roomID
   const processHealth = [];
   for (const url of BACKENDS_URL) {
@@ -70,19 +67,22 @@ router.post("/restart", async (req, res) => {
         });
       })
       .catch((error) => {
-        console.error(error);
+        console.error("health error: " + error);
       });
   }
-
+  console.log("processHealth: ", processHealth)
   const sortedProcesses = processHealth.sort((a, b) => a.games - b.games);
   const { host, port } = sortedProcesses[0];
 
-  const response = await fetch(`http://${host}:${port}/restart?${roomID}`, {
+  const response = await fetch(`http://${host}:${port}/restart?roomID=${roomID}`, {
     method: "GET",
   });
-  game = await response.json();
-  runningGames.push(data);
-  res.status(200).send(data);
+  const game = await response.json();
+  runningGames.push(game);
+  console.log('game: ' + game)
+  console.log('game keys: ' + Object.keys(game))
+  console.log('game url: ' + game.url)
+  res.status(200).send(game);
 });
 
 export default router;

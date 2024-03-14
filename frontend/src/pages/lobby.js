@@ -67,7 +67,7 @@ function Lobby() {
       const { url } = response.data;
       console.log(`url: ${url}`)
       setRoomURL(url);
-      socket = io.connect(roomURL);
+      socket = io.connect(url);
       registerHandlers();
       // delete old user, and add new user with same stat
       // socket.emit("update_socket_id", roomID, oldSocketID, socket.id)
