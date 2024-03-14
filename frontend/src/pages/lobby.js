@@ -67,12 +67,14 @@ function Lobby() {
       console.log('restart')
       const response = await Axios.post(`http://localhost:8080/restart?roomID=${roomID}`);
       const { url } = response.data;
-      console.log(`url: ${url}`)
+      console.log(`new url: ${url}`)
       setRoomURL(url);
+    
       socket = io.connect(url);
       registerHandlers();
       // delete old user, and add new user with same stat
       socket.emit("update_socket_id", roomID, oldSocketID)
+
     } catch (error) {
       console.error("Error restarting room: ", error);
     }

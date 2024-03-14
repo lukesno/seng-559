@@ -195,7 +195,8 @@ export const registerHandlers = (io, socket) => {
 
       await deleteUser(oldSocketID)
       io.to(socket.id).emit("updateSocketID", socket.id);
-      await syncGame(roomID)
+      socket.join(roomID)
+      syncGame(roomID)
     },
     send_answers: (roomID, answer1, answer2) => {
       const game = games[roomID];
