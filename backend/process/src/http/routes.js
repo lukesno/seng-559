@@ -1,5 +1,5 @@
 import express from "express";
-import { games, URL, PORT } from "../state.js";
+import { games, URL, PORT, addGame } from "../state.js";
 import { customAlphabet } from "nanoid";
 import { addDocument } from "../database/firestore.js";
 
@@ -18,16 +18,13 @@ router.get("/create", async (req, res) => {
     users: [],
     sockets: [],
     gameState: "waiting",
-    interval: null,
     round: 0,
     responseCount: 0,
-    questions: [],
+    questions: {},
     questionIndex: 0,
   };
 
-  await addDocument("games", newGame);
-
-  games[roomID] = newGame;
+  addGame(roomID, newGame);
   res.status(200).json(newGame);
 });
 

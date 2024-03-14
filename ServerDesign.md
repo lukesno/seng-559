@@ -81,27 +81,18 @@
 
 ### DB Schema
 
-Database:
+| Collection | Document | Data |
+| ---------- | -------- | ---- |
+| games      | roomID   | game |
+| users      | socketID | user |
+
 
 ```TS
-{ roomID : game }
-{ socketID : user }
-```
-
-Types:
-
-```TS
-answer{
+user{
 	"username": string,
-	"answer": string,
-	"votes": number,
-	"score": number,
-}
-
-question{
-	"id": string
-	"question": string
-	"answers": answer[]
+	"roomID": string,
+	"isLeader": boolean,
+	"score": number
 }
 
 game{
@@ -109,23 +100,23 @@ game{
     "roomID": string,
     "url": string,
 	"gameState": string,
-    "sockets": string[], // array of socket_id
-    "interval": any, // id of current timer
+    "sockets": string[], //list of socket ids
 	"round": number,
     "responseCount": number,
-    "questions": string[], // array of question ids
+    "questions": {}, // array of questions keyed by round number (e.g. round1 : [], round2 : []) 
     "questionIndex": number
 }
 
-user{
-	"id": string
+question{
+	"question": string
+	"answers": answer[]
+}
+
+answer{
 	"username": string,
-	"roomID": string,
-	"socketID": string,
-	"isLeader": boolean,
-	"questions": string[]
-	"submitted": boolean
-	"score": number
+	"answer": string,
+	"votes": number,
+	"score": number,
 }
 ```
 
