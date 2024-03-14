@@ -5,13 +5,13 @@ import { useAppContext } from "../AppContext";
 import Axios from "axios";
 // Screens
 import { WaitingScreen, AskingScreen, VotingScreen, ResultsScreen, FinalResultsScreen } from "./states";
-
+import { setSocketID, getSocketID } from "../id";
 
 let socket = io();
 
 function Lobby() {
   const navigate = useNavigate(); // Initialize useNavigate
-  const { username, roomID, roomURL,socketID, setSocketID, setRoomURL } = useAppContext();
+  const { username, roomID, roomURL, setRoomURL } = useAppContext();
 
   const [timer, setTimer] = useState(0);
   const [isLeader, setIsLeader] = useState(false);
@@ -53,7 +53,7 @@ function Lobby() {
     },
     disconnect: () => {
       console.log("client disconnected");
-      restart(roomID, socketID)
+      restart(roomID, getSocketID())
     },
     updateSocketID: (socketID) => {
       setSocketID(socketID)
@@ -72,7 +72,7 @@ function Lobby() {
       socket = io.connect(url);
       registerHandlers();
       // delete old user, and add new user with same stat
-      // socket.emit("update_socket_id", roomID, oldSocketID, socket.id)
+      socket.emit("update_socket_id", roomID, oldSocketID)
     } catch (error) {
       console.error("Error restarting room: ", error);
     }

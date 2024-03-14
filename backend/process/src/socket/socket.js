@@ -180,16 +180,18 @@ export const registerHandlers = (io, socket) => {
       await fetchQuestions(roomID);
       transitionToAsking(roomID);
     },
-    update_socket_id: (roomID, oldSocketID, newSocketID) => {
-      users[newSocketID] = users[oldSocketID];
-      deleteUser(oldSocketID);
+    update_socket_id: async (roomID, oldSocketID) => {
+      const user = users[oldSocketID]
+      await deleteUser(oldSocketID)
+      await addUser(socket.id, user)
       console.log("before update: ")
       console.log(games[roomID].sockets);
       games[roomID].sockets = games[roomID].sockets.map((socketID) => {
-        return socketID === oldSocketID ? newSocketID : socketID;
+        return socketID === oldSocketID ? socket.id : socketID;
       })
       console.log("after update: ")
       console.log(games[roomID].sockets);
+      io.to(socket.id).emit("updateSocketID", socket.id);
     },
     send_answers: (roomID, answer1, answer2) => {
       const game = games[roomID];
