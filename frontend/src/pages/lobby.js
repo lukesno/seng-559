@@ -158,12 +158,12 @@ function Lobby() {
   };
 
   return (
-    <div className="relative min-h-screen bg-indigo-900 text-white flex items-center justify-center">
+    <div className='relative min-h-screen text-white flex items-center justify-center'>
       {/* Expand/Collapse Button */}
       <button
-        className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-purple-500 px-4 py-2 rounded-r-md font-medium hover:bg-purple-700 transition duration-300 ease-in-out shadow-lg"
+        className='absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-purple-500 px-4 py-2 rounded-r-md font-medium hover:bg-purple-700 transition duration-300 ease-in-out shadow-lg'
         onClick={() => setIsMessagePanelVisible(!isMessagePanelVisible)}
-        aria-label="Toggle message panel"
+        aria-label='Toggle message panel'
       >
         {isMessagePanelVisible ? "←" : "→"}
       </button>
@@ -175,11 +175,11 @@ function Lobby() {
         }`}
         style={{ zIndex: 10 }}
       >
-        <h2 className="text-lg font-semibold mb-2">Messages</h2>
+        <h2 className='text-lg font-semibold mb-2'>Messages</h2>
 
         {/* Messages Display */}
         <div
-          className="overflow-auto mb-4 h-5/6 custom-scrollbar"
+          className='overflow-auto mb-4 h-5/6 custom-scrollbar'
           style={{ maxHeight: "calc(100% - 4rem)" }}
         >
           {messages.map((msg, index) => (
@@ -197,7 +197,7 @@ function Lobby() {
                 {msg.username}:
               </strong>
               <p
-                className="break-words"
+                className='break-words'
                 style={{ textAlign: "left", margin: 0 }}
               >
                 {msg.message}
@@ -207,10 +207,10 @@ function Lobby() {
         </div>
 
         {/* Message Input */}
-        <div className="mb-2">
+        <div className='mb-2'>
           <input
-            className="w-full p-2 rounded-md text-black"
-            placeholder="Type your message here"
+            className='w-full p-2 rounded-md text-black'
+            placeholder='Type your message here'
             onChange={(event) => {
               setMessage(event.target.value);
             }}
@@ -218,7 +218,7 @@ function Lobby() {
         </div>
         {/* Send Button */}
         <button
-          className="w-full bg-green-500 px-6 py-2 rounded-md font-semibold hover:bg-green-700 transition duration-300 ease-in-out shadow-lg"
+          className='w-full bg-green-500 px-6 py-2 rounded-md font-semibold hover:bg-green-700 transition duration-300 ease-in-out shadow-lg'
           onClick={sendMessage}
         >
           Send
