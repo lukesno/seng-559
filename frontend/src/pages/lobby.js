@@ -61,6 +61,8 @@ function Lobby() {
     }
   };
   const restart = async (roomID, oldSocketID) => {
+    socket.disconnect();
+    deregisterHandlers();
     try {
       console.log('restart')
       const response = await Axios.post(`http://localhost:8080/restart?roomID=${roomID}`);
