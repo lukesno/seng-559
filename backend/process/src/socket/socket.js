@@ -7,6 +7,7 @@ import {
   deleteUser,
   syncGame,
   deleteGame,
+  getUser
 } from "../state.js";
 
 const POINTS_PER_ROUND = 1000;
@@ -161,6 +162,7 @@ export const registerHandlers = (io, socket) => {
         roomID: roomID,
         isLeader: isLeader,
         score: 0,
+        socketID: socket.id,
       };
 
       addUser(socket.id, newUser);
@@ -181,17 +183,19 @@ export const registerHandlers = (io, socket) => {
       transitionToAsking(roomID);
     },
     update_socket_id: async (roomID, oldSocketID) => {
-      const user = users[oldSocketID]
-      await deleteUser(oldSocketID)
+      const users = await getUser(oldSocketID)
+      const user = users[0]
+
+      user.socketID = socket.id
       await addUser(socket.id, user)
-      console.log("before update: ")
-      console.log(games[roomID].sockets);
+
       games[roomID].sockets = games[roomID].sockets.map((socketID) => {
         return socketID === oldSocketID ? socket.id : socketID;
       })
-      console.log("after update: ")
-      console.log(games[roomID].sockets);
+
+      await deleteUser(oldSocketID)
       io.to(socket.id).emit("updateSocketID", socket.id);
+      await syncGame(roomID)
     },
     send_answers: (roomID, answer1, answer2) => {
       const game = games[roomID];

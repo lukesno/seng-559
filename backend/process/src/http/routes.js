@@ -29,14 +29,15 @@ router.get("/health", (_, res) => {
     res.status(200).json({ games: 0 });
   }
 });
+  
 
-// Race condition
 router.get("/restart", async (req,res) => {
   const roomID = req.query.roomID
   console.log(`Inside routes, and req.query.roomID: ${roomID}`)
   let game = Object.values(games).find(game => game.roomID === roomID);
   if (game) {
     res.status(200).send(game)
+    return
   }
   const retrievedGames = await retrieveGame(roomID)
   console.log("router /restart, getGame: ", retrievedGames)

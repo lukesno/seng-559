@@ -43,5 +43,15 @@ async function deleteUser(socketID) {
 async function updateUser(socketID, user) {
   await updateDocument("users", socketID, user);
 }
+async function getUser(socketID) {
+  return await getDocuments("users", "socketID", socketID);
+}
 export { games, users, URL, PORT };
-export { addGame, syncGame, deleteGame, addUser, syncUser, deleteUser, retrieveGame };
+export { addGame,
+        syncGame,
+        deleteGame,
+        addUser,
+        syncUser,
+        deleteUser,
+        retrieveGame,
+        getUser, };
