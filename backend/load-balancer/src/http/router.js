@@ -47,9 +47,7 @@ router.post("/join", (req, res) => {
 });
 
 router.post("/restart", async (req, res) => {
-  console.log('inside router /restart')
   const { roomID } = req.query;
-  console.log(`Restarting game, and query: ${roomID}`)
 
   // create a new game with same roomID
   const processHealth = [];
@@ -79,9 +77,6 @@ router.post("/restart", async (req, res) => {
   });
   const game = await response.json();
   runningGames.push(game);
-  console.log('game: ' + game)
-  console.log('game keys: ' + Object.keys(game))
-  console.log('game url: ' + game.url)
   res.status(200).send(game);
 });
 

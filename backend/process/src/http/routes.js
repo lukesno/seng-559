@@ -33,19 +33,15 @@ router.get("/health", (_, res) => {
 
 router.get("/restart", async (req,res) => {
   const roomID = req.query.roomID
-  console.log(`Inside routes, and req.query.roomID: ${roomID}`)
   let game = Object.values(games).find(game => game.roomID === roomID);
   if (game) {
     res.status(200).send(game)
     return
   }
   const retrievedGames = await retrieveGame(roomID)
-  console.log("router /restart, getGame: ", retrievedGames)
   if (retrievedGames[0]) {
     retrievedGames[0].url = `${URL}:${PORT}`
     console.log('retrievedGames[0]: ',  retrievedGames[0] )
-    console.log('game url: ', retrievedGames[0].url)
-    console.log('url: ', `${URL}:${PORT}`)
     games[roomID] = retrievedGames[0]
     res.status(200).send(retrievedGames[0])
   }
