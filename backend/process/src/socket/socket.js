@@ -13,7 +13,7 @@ import {
 import OpenAI from "openai";
 
 const POINTS_PER_ROUND = 1000;
-const ASKING_DURATION_S = 10;
+const ASKING_DURATION_S = 30;
 const VOTING_DURATION_S = 10;
 const RESULT_DURATION_S = 5;
 const NUM_ROUNDS = 2;
@@ -24,6 +24,9 @@ const openai = new OpenAI({
 
 // Timer references
 const timers = {};
+
+// Rejoin references
+const rejoins = {};
 
 const fetchQuestions = async (roomID) => {
   try {
@@ -100,7 +103,6 @@ export function registerHandlers(io, socket) {
   }
 
   function createTimer(roomID, duration, callback) {
-    const game = games[roomID];
     let timer = duration;
 
     io.to(roomID).emit("send_timer", timer--);
@@ -147,19 +149,23 @@ export function registerHandlers(io, socket) {
     updateGameState(roomID, "results");
 
     createTimer(roomID, RESULT_DURATION_S, () => {
-      game.questionIndex += 1;
-      if (game.questionIndex !== game.questions[`round${game.round}`].length) {
-        transitionToVoting(roomID);
-        return;
-      }
-      game.round += 1;
-      if (game.round !== NUM_ROUNDS) {
-        transitionToAsking(roomID);
-        return;
-      } else {
-        transitionToFinalResults(roomID);
-      }
+      transitionFromResultScreen(roomID);
     });
+  }
+
+  function transitionFromResultScreen(roomID) {
+    game.questionIndex += 1;
+    if (game.questionIndex !== game.questions[`round${game.round}`].length) {
+      transitionToVoting(roomID);
+      return;
+    }
+    game.round += 1;
+    if (game.round !== NUM_ROUNDS) {
+      transitionToAsking(roomID);
+      return;
+    } else {
+      transitionToFinalResults(roomID);
+    }
   }
 
   function transitionToFinalResults(roomID) {
@@ -182,7 +188,6 @@ export function registerHandlers(io, socket) {
       };
 
       addUser(socket.id, newUser);
-      io.to(socket.id).emit("updateSocketID", socket.id);
       game.sockets.push(socket.id);
       syncGame(roomID);
 
@@ -198,20 +203,38 @@ export function registerHandlers(io, socket) {
       await fetchQuestions(roomID);
       transitionToAsking(roomID);
     },
-    update_socket_id: async (roomID, oldSocketID) => {
+    update_socketID: async (roomID, oldSocketID) => {
+      const game = games[roomID];
       const user = await retrieveUser(oldSocketID);
 
       user.socketID = socket.id;
       await addUser(socket.id, user);
 
-      games[roomID].sockets = games[roomID].sockets.map((socketID) => {
+      game.sockets = game.sockets.map((socketID) => {
         return socketID === oldSocketID ? socket.id : socketID;
       });
 
       await deleteUser(oldSocketID);
-      io.to(socket.id).emit("updateSocketID", socket.id);
       socket.join(roomID);
       syncGame(roomID);
+
+      rejoins[roomID] = (rejoins[roomID] ?? 0) + 1;
+
+      if (rejoins[roomID] === game.sockets.length) {
+        delete rejoins[roomID];
+        switch (game.gameState) {
+          case "asking":
+            transitionToAsking(roomID);
+            break;
+          case "voting":
+            transitionToVoting(roomID);
+            break;
+          case "result":
+            transitionToResults(roomID);
+          default:
+            break;
+        }
+      }
     },
     send_answers: (roomID, answer1, answer2) => {
       const game = games[roomID];

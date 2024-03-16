@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { useAppContext } from "../AppContext";
@@ -11,7 +11,6 @@ import {
   ResultsScreen,
   FinalResultsScreen,
 } from "./states";
-import { setSocketID, getSocketID } from "../id";
 
 let socket = io();
 
@@ -19,6 +18,7 @@ function Lobby() {
   const navigate = useNavigate(); // Initialize useNavigate
   const { username, roomID, roomURL, setRoomURL } = useAppContext();
 
+  const mySocketID = useRef("");
   const [timer, setTimer] = useState(0);
   const [isLeader, setIsLeader] = useState(false);
   const [lobbyState, setLobbyState] = useState("waiting"); // Initial lobby state
@@ -30,7 +30,8 @@ function Lobby() {
 
   const handlers = {
     connect: () => {
-      console.log(`Connected to socket!`);
+      mySocketID.current = socket.id;
+      console.log(`Connected to socket with ID:${mySocketID.current}`);
     },
     update_users: (users) => {
       setUsers(users);
@@ -58,14 +59,10 @@ function Lobby() {
       setTimer(time);
     },
     disconnect: () => {
-      restart(roomID, getSocketID());
-    },
-    updateSocketID: (socketID) => {
-      setSocketID(socketID);
-      console.log(`updated SocketID: ${socketID}`);
+      restart();
     },
   };
-  const restart = async (roomID, oldSocketID) => {
+  const restart = async () => {
     socket.disconnect();
     deregisterHandlers();
     try {
@@ -79,7 +76,7 @@ function Lobby() {
       socket = io.connect(url);
       registerHandlers();
       // delete old user, and add new user with same stat
-      socket.emit("update_socket_id", roomID, oldSocketID);
+      socket.emit("update_socketID", roomID, mySocketID.current);
     } catch (error) {
       console.error("Error restarting room: ", error);
     }
@@ -111,7 +108,7 @@ function Lobby() {
       deregisterHandlers();
       socket.disconnect();
     };
-  }, []); // Empty dependency array ensures the effect runs only once when the component mounts
+  }, []);
 
   const sendMessage = () => {
     socket.emit("message_room", roomID, username, message);
