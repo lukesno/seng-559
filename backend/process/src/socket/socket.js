@@ -10,11 +10,18 @@ import {
   getUser
 } from "../state.js";
 
+import OpenAI from 'openai';
+import 'dotenv/config';
+
 const POINTS_PER_ROUND = 1000;
 const ASKING_DURATION_S = 10;
 const VOTING_DURATION_S = 10;
 const RESULT_DURATION_S = 5;
 const NUM_ROUNDS = 2;
+
+const openai = new OpenAI({
+  apiKey: process.env.API_KEY
+});
 
 // Timer references
 const timers = {};
@@ -22,11 +29,13 @@ const timers = {};
 const fetchQuestions = async (roomID) => {
   try {
     const game = games[roomID];
-    const response = await fetch(
-      `https://opentdb.com/api.php?amount=${game.sockets.length * NUM_ROUNDS}`
-    );
-    const response_json = await response.json();
-    const allQuestions = response_json.results.map((item) => item.question);
+    const response = await openai.chat.completions.create({
+      messages: [{ role: "system", content: "You are a helpful assistant.", 
+                  role: "user", content: "Can you please generate 6 prompts similar to the prompts from the game cards against humanity? Just provide the prompt, don't add any additional words to the response and do not ask if we want another prompt"}],
+      model: "gpt-3.5-turbo",
+    });
+
+    const allQuestions = (response.choices[0].message.content).split("\n");
     const groupedQuestions = [];
 
     for (let i = 0; i < allQuestions.length; i += game.sockets.length) {
