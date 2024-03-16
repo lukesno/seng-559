@@ -154,6 +154,8 @@ export function registerHandlers(io, socket) {
   }
 
   function transitionFromResultScreen(roomID) {
+    const game = games[roomID];
+
     game.questionIndex += 1;
     if (game.questionIndex !== game.questions[`round${game.round}`].length) {
       transitionToVoting(roomID);
@@ -269,7 +271,9 @@ export function registerHandlers(io, socket) {
         game.questions[`round${game.round}`][game.questionIndex].answers;
 
       game.responseCount += 1;
-      answers[vote].votes += 1;
+      if (vote !== -1) {
+        answers[vote].votes += 1;
+      }
 
       if (game.responseCount === game.sockets.length) {
         clearInterval(timers[roomID]);

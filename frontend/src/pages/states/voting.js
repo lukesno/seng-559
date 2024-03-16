@@ -16,18 +16,20 @@ export function VotingScreen({
   }, [timer]);
 
   return (
-    <div className='min-h-screen text-white flex flex-col items-center justify-center p-5 relative space-y-6'>
+    <div className="min-h-screen text-white flex flex-col items-center justify-center p-5 relative space-y-6">
       <div
-        className={`absolute top-5 right-5 text-3xl font-bold ${timer <= 5 ? "animate-ping" : ""}`}
+        className={`absolute top-5 right-5 text-3xl font-bold ${
+          timer <= 5 ? "animate-ping" : ""
+        }`}
       >
         Timer: {timer}
       </div>
 
-      <h1 className='text-4xl font-bold text-purple-300'>Voting Screen</h1>
-      <div className='text-center'>
-        <h2 className='text-2xl font-semibold'>Question: {voteQuestion}</h2>
+      <h1 className="text-4xl font-bold text-purple-300">Voting Screen</h1>
+      <div className="text-center">
+        <h2 className="text-2xl font-semibold">Question: {voteQuestion}</h2>
       </div>
-      <div className='flex justify-center items-center gap-4 w-full max-w-md'>
+      <div className="flex justify-center items-center gap-4 w-full max-w-md">
         {voteAnswers.map((answer, index) => (
           <button
             key={index}

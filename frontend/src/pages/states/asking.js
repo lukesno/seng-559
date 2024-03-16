@@ -44,26 +44,28 @@ export function AskingScreen({ questions, sendAnswers, timer }) {
   };
 
   return (
-    <div className='min-h-screen text-white flex flex-col items-center justify-center p-5 relative'>
+    <div className="min-h-screen text-white flex flex-col items-center justify-center p-5 relative">
       {/* Timer */}
       <div
-        className={`absolute top-5 right-5 text-3xl font-bold ${timer <= 5 ? "animate-ping" : ""}`}
+        className={`absolute top-5 right-5 text-3xl font-bold ${
+          timer <= 5 ? "animate-ping" : ""
+        }`}
       >
         Timer: {timer}
       </div>
 
-      <h1 className='text-3xl font-bold text-purple-300 mb-4'>Asking Screen</h1>
-      <div className='bg-gray-800 p-6 rounded-lg shadow-lg text-center'>
-        <h3 className='text-lg font-medium text-green-400 mb-4'>
+      <h1 className="text-3xl font-bold text-purple-300 mb-4">Asking Screen</h1>
+      <div className="bg-gray-800 p-6 rounded-lg shadow-lg text-center">
+        <h3 className="text-lg font-medium text-green-400 mb-4">
           Question {currentQuestionIndex + 1}
         </h3>
-        <p className='text-white text-md mb-4'>
+        <p className="text-white text-md mb-4">
           {questions[currentQuestionIndex]}
         </p>
         <input
-          type='text'
-          placeholder='Type your answer here...'
-          className='text-black w-full p-2 rounded-md'
+          type="text"
+          placeholder="Type your answer here..."
+          className="text-black w-full p-2 rounded-md"
           value={answers[currentQuestionIndex]}
           onChange={(e) => updateAnswer(e.target.value)}
         />
