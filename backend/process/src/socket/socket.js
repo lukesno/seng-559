@@ -7,11 +7,10 @@ import {
   deleteUser,
   syncGame,
   deleteGame,
-  getUser
+  getUser,
 } from "../state.js";
 
-import OpenAI from 'openai';
-import 'dotenv/config';
+import OpenAI from "openai";
 
 const POINTS_PER_ROUND = 1000;
 const ASKING_DURATION_S = 10;
@@ -20,7 +19,7 @@ const RESULT_DURATION_S = 5;
 const NUM_ROUNDS = 2;
 
 const openai = new OpenAI({
-  apiKey: process.env.API_KEY
+  apiKey: process.env.OPEN_API_KEY,
 });
 
 // Timer references
@@ -29,18 +28,30 @@ const timers = {};
 const fetchQuestions = async (roomID) => {
   try {
     const game = games[roomID];
+    const numPlayers = game.sockets.length;
     const response = await openai.chat.completions.create({
-      messages: [{ role: "system", content: "You are a helpful assistant.", 
-                  role: "user", content: "Can you please generate 6 prompts similar to the prompts from the game cards against humanity? Just provide the prompt, don't add any additional words to the response and do not ask if we want another prompt"}],
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant.",
+          role: "user",
+          content: `Can you please generate ${
+            numPlayers * NUM_ROUNDS
+          } prompts similar to the prompts from the Jackbox Party Pack Game Quiplash? 
+          Just provide the prompt, don't add any additional words to the response and do not ask if we want another prompt`,
+        },
+      ],
       model: "gpt-3.5-turbo",
     });
 
-    const allQuestions = (response.choices[0].message.content).split("\n");
-    const groupedQuestions = [];
+    const allQuestions = response.choices[0].message.content.split("\n");
+    console.log(`${allQuestions.length} questions generated for ${roomID}`);
 
+    const groupedQuestions = [];
     for (let i = 0; i < allQuestions.length; i += game.sockets.length) {
       groupedQuestions.push(allQuestions.slice(i, i + game.sockets.length));
     }
+
     groupedQuestions.forEach((questions, round) => {
       game.questions[`round${round}`] = questions.map((question) => {
         return { question: question, answers: [] };
@@ -51,10 +62,9 @@ const fetchQuestions = async (roomID) => {
   }
 };
 
-export const registerHandlers = (io, socket) => {
-  const emitUsers = (roomID) => {
+export function registerHandlers(io, socket) {
+  function emitUsers(roomID) {
     const game = games[roomID];
-
     io.to(roomID).emit(
       "update_users",
       game.sockets.map((socket) => {
@@ -64,11 +74,10 @@ export const registerHandlers = (io, socket) => {
         };
       })
     );
-  };
+  }
 
-  const sendQuestions = (roomID) => {
+  function sendQuestions(roomID) {
     const game = games[roomID];
-
     game.sockets.forEach((socket, i) => {
       const questions = [
         game.questions[`round${game.round}`][i].question,
@@ -77,28 +86,26 @@ export const registerHandlers = (io, socket) => {
       ];
       io.to(socket).emit("send_questions", questions);
     });
-  };
+  }
 
-  const updateGameState = (roomID, newState) => {
+  function updateGameState(roomID, newState) {
     const game = games[roomID];
-
     game.gameState = newState;
     io.to(roomID).emit("update_roomState", game.gameState);
-
     // synchronize database
     syncGame(roomID);
     game.sockets.forEach((socketID) => {
       syncUser(socketID);
     });
-  };
+  }
 
-  const createTimer = (roomID, duration, callback) => {
+  function createTimer(roomID, duration, callback) {
     const game = games[roomID];
     let timer = duration;
 
-    io.to(game.roomID).emit("send_timer", timer--);
+    io.to(roomID).emit("send_timer", timer--);
     timers[roomID] = setInterval(() => {
-      io.to(game.roomID).emit("send_timer", timer--);
+      io.to(roomID).emit("send_timer", timer--);
       if (timer < 0) {
         clearInterval(timers[roomID]);
         if (callback !== null) {
@@ -107,9 +114,9 @@ export const registerHandlers = (io, socket) => {
         return;
       }
     }, 1000);
-  };
+  }
 
-  const transitionToAsking = (roomID) => {
+  function transitionToAsking(roomID) {
     const game = games[roomID];
 
     sendQuestions(roomID);
@@ -117,23 +124,23 @@ export const registerHandlers = (io, socket) => {
     game.questionIndex = 0;
     createTimer(roomID, ASKING_DURATION_S, null);
     updateGameState(roomID, "asking");
-  };
+  }
 
-  const transitionToVoting = (roomID) => {
+  function transitionToVoting(roomID) {
     const game = games[roomID];
-    io.to(game.roomID).emit(
+    io.to(roomID).emit(
       "send_voteAnswers",
       game.questions[`round${game.round}`][game.questionIndex]
     );
     game.responseCount = 0;
     createTimer(roomID, VOTING_DURATION_S, null);
     updateGameState(roomID, "voting");
-  };
+  }
 
-  const transitionToResults = (roomID) => {
+  function transitionToResults(roomID) {
     const game = games[roomID];
     emitUsers(roomID);
-    io.to(game.roomID).emit(
+    io.to(roomID).emit(
       "send_voteResults",
       game.questions[`round${game.round}`][game.questionIndex].answers
     );
@@ -153,11 +160,11 @@ export const registerHandlers = (io, socket) => {
         transitionToFinalResults(roomID);
       }
     });
-  };
+  }
 
-  const transitionToFinalResults = (roomID) => {
+  function transitionToFinalResults(roomID) {
     updateGameState(roomID, "finalResults");
-  };
+  }
 
   const handlers = {
     join_game: (roomID, username) => {
@@ -192,20 +199,20 @@ export const registerHandlers = (io, socket) => {
       transitionToAsking(roomID);
     },
     update_socket_id: async (roomID, oldSocketID) => {
-      const users = await getUser(oldSocketID)
-      const user = users[0]
+      const users = await getUser(oldSocketID);
+      const user = users[0];
 
-      user.socketID = socket.id
-      await addUser(socket.id, user)
+      user.socketID = socket.id;
+      await addUser(socket.id, user);
 
       games[roomID].sockets = games[roomID].sockets.map((socketID) => {
         return socketID === oldSocketID ? socket.id : socketID;
-      })
+      });
 
-      await deleteUser(oldSocketID)
+      await deleteUser(oldSocketID);
       io.to(socket.id).emit("updateSocketID", socket.id);
-      socket.join(roomID)
-      syncGame(roomID)
+      socket.join(roomID);
+      syncGame(roomID);
     },
     send_answers: (roomID, answer1, answer2) => {
       const game = games[roomID];
@@ -293,4 +300,4 @@ export const registerHandlers = (io, socket) => {
   for (let handle in handlers) {
     socket.on(handle, handlers[handle]);
   }
-};
+}
