@@ -7,7 +7,7 @@ import {
   deleteUser,
   syncGame,
   deleteGame,
-  getUser,
+  retrieveUser,
 } from "../state.js";
 
 import OpenAI from "openai";
@@ -199,8 +199,7 @@ export function registerHandlers(io, socket) {
       transitionToAsking(roomID);
     },
     update_socket_id: async (roomID, oldSocketID) => {
-      const users = await getUser(oldSocketID);
-      const user = users[0];
+      const user = await retrieveUser(oldSocketID);
 
       user.socketID = socket.id;
       await addUser(socket.id, user);

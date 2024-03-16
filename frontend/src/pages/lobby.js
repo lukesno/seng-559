@@ -4,7 +4,13 @@ import io from "socket.io-client";
 import { useAppContext } from "../AppContext";
 import Axios from "axios";
 // Screens
-import { WaitingScreen, AskingScreen, VotingScreen, ResultsScreen, FinalResultsScreen } from "./states";
+import {
+  WaitingScreen,
+  AskingScreen,
+  VotingScreen,
+  ResultsScreen,
+  FinalResultsScreen,
+} from "./states";
 import { setSocketID, getSocketID } from "../id";
 
 let socket = io();
@@ -52,33 +58,32 @@ function Lobby() {
       setTimer(time);
     },
     disconnect: () => {
-      console.log("client disconnected");
-      restart(roomID, getSocketID())
+      restart(roomID, getSocketID());
     },
     updateSocketID: (socketID) => {
-      setSocketID(socketID)
+      setSocketID(socketID);
       console.log(`updated SocketID: ${socketID}`);
-    }
+    },
   };
   const restart = async (roomID, oldSocketID) => {
     socket.disconnect();
     deregisterHandlers();
     try {
-      console.log('restart')
-      const response = await Axios.post(`http://localhost:8080/restart?roomID=${roomID}`);
+      const response = await Axios.post(
+        `http://localhost:8080/restart?roomID=${roomID}`
+      );
       const { url } = response.data;
-      console.log(`new url: ${url}`)
+      console.log(`new url: ${url}`);
       setRoomURL(url);
-    
+
       socket = io.connect(url);
       registerHandlers();
       // delete old user, and add new user with same stat
-      socket.emit("update_socket_id", roomID, oldSocketID)
-
+      socket.emit("update_socket_id", roomID, oldSocketID);
     } catch (error) {
       console.error("Error restarting room: ", error);
     }
-  }
+  };
 
   const registerHandlers = () => {
     for (let handle in handlers) {
@@ -141,7 +146,13 @@ function Lobby() {
           />
         );
       case "asking":
-        return <AskingScreen questions={questions} sendAnswers={sendAnswers} timer={timer}/>;
+        return (
+          <AskingScreen
+            questions={questions}
+            sendAnswers={sendAnswers}
+            timer={timer}
+          />
+        );
       case "voting":
         return (
           <VotingScreen
@@ -161,7 +172,7 @@ function Lobby() {
           />
         );
       case "finalResults":
-        return (<FinalResultsScreen users={users}/>)
+        return <FinalResultsScreen users={users} />;
       default:
         return <p>Error: Lobby unavailable or in unknown state.</p>;
     }

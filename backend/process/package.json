@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "npm install && cross-env nodemon src/index.js",
-    "start:3001": "cross-env PORT=3001 nodemon src/index.js",
-    "start:3002": "cross-env PORT=3002 nodemon src/index.js",
-    "start:3003": "cross-env PORT=3003 nodemon src/index.js",
+    "start": "npm install && cross-env node src/index.js",
+    "start:3001": "cross-env PORT=3001 node src/index.js",
+    "start:3002": "cross-env PORT=3002 node src/index.js",
+    "start:3003": "cross-env PORT=3003 node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",
@@ -21,8 +21,5 @@
     "nanoid": "^5.0.6",
     "openai": "^4.29.0",
     "socket.io": "^4.7.4"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.0"
   }
 }

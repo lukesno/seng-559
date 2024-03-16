@@ -1,14 +1,5 @@
 import db from "./firebase.js";
-import {
-  collection,
-  doc,
-  setDoc,
-  deleteDoc,
-  updateDoc,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
+import { doc, setDoc, deleteDoc, updateDoc, getDoc } from "firebase/firestore";
 
 // Wrapper for Firestore's addDoc function
 async function addDocument(collectionName, key, data) {
@@ -41,23 +32,14 @@ async function deleteDocument(collectionName, key) {
   }
 }
 
-async function getDocuments(collectionName, fieldName, value) {
-  const q = query(
-    collection(db, collectionName),
-    where(fieldName, "==", value)
-  );
+async function getDocument(collectionName, key) {
   try {
-    const querySnapshot = await getDocs(q);
-    let documents = [];
-    querySnapshot.forEach((doc) => {
-      // Push document data and id to the array
-      documents.push({ id: doc.id, ...doc.data() });
-    });
-    return documents;
+    const querySnapshot = await getDoc(doc(db, collectionName, key));
+    return querySnapshot.data();
   } catch (error) {
     console.error("Error getting documents: ", error);
     throw error;
   }
 }
 
-export { addDocument, updateDocument, deleteDocument, getDocuments };
+export { addDocument, updateDocument, deleteDocument, getDocument };

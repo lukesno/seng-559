@@ -2,7 +2,7 @@ import {
   addDocument,
   deleteDocument,
   updateDocument,
-  getDocuments,
+  getDocument,
 } from "./database/firestore.js";
 import "dotenv/config";
 
@@ -17,7 +17,7 @@ async function addGame(roomID, game) {
   await addDocument("games", roomID, game);
 }
 async function retrieveGame(roomID) {
-  return await getDocuments("games", "roomID", roomID);
+  return await getDocument("games", roomID);
 }
 async function syncGame(roomID) {
   await updateDocument("games", roomID, games[roomID]);
@@ -42,8 +42,8 @@ async function deleteUser(socketID) {
   await deleteDocument("users", socketID);
 }
 
-async function getUser(socketID) {
-  return await getDocuments("users", "socketID", socketID);
+async function retrieveUser(socketID) {
+  return await getDocument("users", socketID);
 }
 export { games, users, URL, PORT };
 export {
@@ -54,5 +54,5 @@ export {
   syncUser,
   deleteUser,
   retrieveGame,
-  getUser,
+  retrieveUser,
 };

@@ -11,7 +11,7 @@ function Home() {
 
   useEffect(() => {
     setRoomURL("");
-  }, [])
+  }, []);
 
   const create = async () => {
     try {
