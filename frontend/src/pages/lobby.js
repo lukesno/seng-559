@@ -10,6 +10,7 @@ import {
   VotingScreen,
   ResultsScreen,
   FinalResultsScreen,
+  LoadingScreen,
 } from "./states";
 
 let socket = io();
@@ -136,6 +137,8 @@ function Lobby() {
 
   const renderLobbyComponent = () => {
     switch (lobbyState) {
+      case "loading":
+        return <LoadingScreen />;
       case "waiting":
         return (
           <WaitingScreen

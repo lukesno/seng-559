@@ -67,6 +67,12 @@ router.post("/restart", async (req, res) => {
         console.error("health error: " + error);
       });
   }
+
+  if (processHealth.length === 0) {
+    console.error("NO SERVERS ALIVE");
+    return;
+  }
+
   const sortedProcesses = processHealth.sort((a, b) => a.games - b.games);
   const { host, port } = sortedProcesses[0];
 

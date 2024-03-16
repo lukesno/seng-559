@@ -200,6 +200,7 @@ export function registerHandlers(io, socket) {
     },
     start_game: async (roomID) => {
       console.log(`${PORT}: Start game ${roomID}`);
+      io.to(roomID).emit("update_roomState", "loading");
       await fetchQuestions(roomID);
       transitionToAsking(roomID);
     },
@@ -219,6 +220,7 @@ export function registerHandlers(io, socket) {
       syncGame(roomID);
 
       rejoins[roomID] = (rejoins[roomID] ?? 0) + 1;
+      io.to(socket.id).emit("update_roomState", "waiting");
 
       if (rejoins[roomID] === game.sockets.length) {
         delete rejoins[roomID];
