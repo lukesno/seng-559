@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { useAppContext } from "../AppContext";
-
+import Axios from "axios";
 // Screens
 import {
   WaitingScreen,
@@ -16,11 +16,11 @@ let socket = io();
 
 function Lobby() {
   const navigate = useNavigate(); // Initialize useNavigate
-  const { username, roomID, roomURL } = useAppContext();
+  const { username, roomID, roomURL, setRoomURL } = useAppContext();
 
+  const mySocketID = useRef("");
   const [isMessagePanelVisible, setIsMessagePanelVisible] = useState(false);
   const [messages, setMessages] = useState([]);
-
   const [timer, setTimer] = useState(0);
   const [isLeader, setIsLeader] = useState(false);
   const [lobbyState, setLobbyState] = useState("waiting"); // Initial lobby state
@@ -32,7 +32,8 @@ function Lobby() {
 
   const handlers = {
     connect: () => {
-      console.log(`Connected to socket!`);
+      mySocketID.current = socket.id;
+      console.log(`Connected to socket with ID:${mySocketID.current}`);
     },
     update_users: (users) => {
       setUsers(users);
@@ -60,6 +61,28 @@ function Lobby() {
     send_timer: (time) => {
       setTimer(time);
     },
+    disconnect: () => {
+      restart();
+    },
+  };
+  const restart = async () => {
+    socket.disconnect();
+    deregisterHandlers();
+    try {
+      const response = await Axios.post(
+        `http://localhost:8080/restart?roomID=${roomID}`
+      );
+      const { url } = response.data;
+      console.log(`new url: ${url}`);
+      setRoomURL(url);
+
+      socket = io.connect(url);
+      registerHandlers();
+      // delete old user, and add new user with same stat
+      socket.emit("update_socketID", roomID, mySocketID.current);
+    } catch (error) {
+      console.error("Error restarting room: ", error);
+    }
   };
 
   const registerHandlers = () => {
@@ -88,7 +111,7 @@ function Lobby() {
       deregisterHandlers();
       socket.disconnect();
     };
-  }, []); // Empty dependency array ensures the effect runs only once when the component mounts
+  }, []);
 
   const sendMessage = () => {
     socket.emit("message_room", roomID, username, message);
@@ -158,12 +181,12 @@ function Lobby() {
   };
 
   return (
-    <div className='relative min-h-screen text-white flex items-center justify-center'>
+    <div className="relative min-h-screen text-white flex items-center justify-center">
       {/* Expand/Collapse Button */}
       <button
-        className='absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-purple-500 px-4 py-2 rounded-r-md font-medium hover:bg-purple-700 transition duration-300 ease-in-out shadow-lg'
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-purple-500 px-4 py-2 rounded-r-md font-medium hover:bg-purple-700 transition duration-300 ease-in-out shadow-lg"
         onClick={() => setIsMessagePanelVisible(!isMessagePanelVisible)}
-        aria-label='Toggle message panel'
+        aria-label="Toggle message panel"
       >
         {isMessagePanelVisible ? "←" : "→"}
       </button>
@@ -175,11 +198,11 @@ function Lobby() {
         }`}
         style={{ zIndex: 10 }}
       >
-        <h2 className='text-lg font-semibold mb-2'>Messages</h2>
+        <h2 className="text-lg font-semibold mb-2">Messages</h2>
 
         {/* Messages Display */}
         <div
-          className='overflow-auto mb-4 h-5/6 custom-scrollbar'
+          className="overflow-auto mb-4 h-5/6 custom-scrollbar"
           style={{ maxHeight: "calc(100% - 4rem)" }}
         >
           {messages.map((msg, index) => (
@@ -197,7 +220,7 @@ function Lobby() {
                 {msg.username}:
               </strong>
               <p
-                className='break-words'
+                className="break-words"
                 style={{ textAlign: "left", margin: 0 }}
               >
                 {msg.message}
@@ -207,10 +230,10 @@ function Lobby() {
         </div>
 
         {/* Message Input */}
-        <div className='mb-2'>
+        <div className="mb-2">
           <input
-            className='w-full p-2 rounded-md text-black'
-            placeholder='Type your message here'
+            className="w-full p-2 rounded-md text-black"
+            placeholder="Type your message here"
             onChange={(event) => {
               setMessage(event.target.value);
             }}
@@ -218,7 +241,7 @@ function Lobby() {
         </div>
         {/* Send Button */}
         <button
-          className='w-full bg-green-500 px-6 py-2 rounded-md font-semibold hover:bg-green-700 transition duration-300 ease-in-out shadow-lg'
+          className="w-full bg-green-500 px-6 py-2 rounded-md font-semibold hover:bg-green-700 transition duration-300 ease-in-out shadow-lg"
           onClick={sendMessage}
         >
           Send

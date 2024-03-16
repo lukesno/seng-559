@@ -1,5 +1,5 @@
 import express from "express";
-import { games, URL, PORT } from "../state.js";
+import { games, URL, PORT, addGame, retrieveGame } from "../state.js";
 import { customAlphabet } from "nanoid";
 
 const nanoid = customAlphabet("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ", 4);
@@ -12,14 +12,13 @@ router.get("/create", (_, res) => {
     url: `${URL}:${PORT}`,
     sockets: [],
     gameState: "waiting",
-    interval: null,
     round: 0,
     responseCount: 0,
-    questions: [],
+    questions: {},
     questionIndex: 0,
   };
 
-  games[roomID] = newGame;
+  addGame(roomID, newGame);
   res.status(200).json(newGame);
 });
 
@@ -31,4 +30,19 @@ router.get("/health", (_, res) => {
   }
 });
 
+router.get("/restart", async (req, res) => {
+  const roomID = req.query.roomID;
+  const game = games[roomID];
+  if (game) {
+    res.status(200).send(game);
+    return;
+  }
+  const retrievedGame = await retrieveGame(roomID);
+  if (retrievedGame) {
+    retrievedGame.url = `${URL}:${PORT}`;
+    console.log("retrievedGame: ", retrievedGame);
+    games[roomID] = retrievedGame;
+    res.status(200).send(retrievedGame);
+  }
+});
 export default router;
