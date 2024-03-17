@@ -184,7 +184,7 @@ function Lobby() {
   };
 
   return (
-    <div className="relative min-h-screen text-white flex items-center justify-center">
+    <div className="relative h-screen text-white flex items-center justify-center">
       {/* Expand/Collapse Button */}
       <button
         className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-purple-500 px-4 py-2 rounded-r-md font-medium hover:bg-purple-700 transition duration-300 ease-in-out shadow-lg"
@@ -196,7 +196,7 @@ function Lobby() {
 
       {/* Message Panel */}
       <div
-        className={`absolute left-0 top-0 h-full w-64 bg-gray-800 p-4 rounded-tr-lg shadow-xl transition-transform duration-300 ease-in-out ${
+        className={`absolute left-0 top-0 h-screen w-64 bg-gray-800 p-4 rounded-tr-lg shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
           isMessagePanelVisible ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{ zIndex: 10 }}
@@ -205,7 +205,7 @@ function Lobby() {
 
         {/* Messages Display */}
         <div
-          className="overflow-auto mb-4 h-5/6 custom-scrollbar"
+          className="overflow-auto mb-4 "
           style={{ maxHeight: "calc(100% - 4rem)" }}
         >
           {messages.map((msg, index) => (
@@ -233,7 +233,7 @@ function Lobby() {
         </div>
 
         {/* Message Input */}
-        <div className="mb-2">
+        <div className="mt-auto mb-2">
           <input
             className="w-full p-2 rounded-md text-black"
             placeholder="Type your message here"

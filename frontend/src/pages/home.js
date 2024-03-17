@@ -64,16 +64,16 @@ function Home() {
               }}
             />
           </div>
-          <div className="row-start-5 row-span-1 md:row-start-auto flex flex-col">
+          <div className="row-start-5 row-span-1 md:row-start-auto flex flex-col items-center w-48 md:w-auto">
             <h2 className="primary-text">Create a Room</h2>
             <button
-              className="text-white px-6 py-2 h-10 rounded-full font-semibold transition duration-300 ease-in-out shadow-lg hover:shadow-xl bg-green-500 hover:bg-green-700"
+              className="text-white px-6 py-2 h-10 w-full rounded-2xl font-semibold transition duration-300 ease-in-out shadow-lg hover:shadow-xl bg-green-500 hover:bg-green-700"
               onClick={create}
             >
               Create
             </button>
           </div>
-          <div className="row-start-6 md:row-start-auto row-span-1 flex flex-col items-center">
+          <div className="row-start-6 md:row-start-auto row-span-1 flex flex-col w-48 items-center">
             <h2 className="primary-text">Join a Room</h2>
             <div className="rounded-xl overflow-hidden flex items-center h-10">
               <input

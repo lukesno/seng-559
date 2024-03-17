@@ -3,7 +3,7 @@ import { BACKENDS_URL } from "../state.js";
 
 const router = express.Router();
 
-const runningGames = [];
+const runningGames = {};
 
 router.get("/create", async (_, res) => {
   const processHealth = [];
@@ -31,15 +31,15 @@ router.get("/create", async (_, res) => {
     method: "GET",
   });
   const data = await response.json();
-  runningGames.push(data);
+  runningGames[data.roomID] = data;
   res.status(200).send(data);
 });
 
 router.post("/join", (req, res) => {
   const { roomID } = req.body;
-  const game = runningGames.find((game) => game.roomID === roomID);
+  const game = runningGames[roomID];
   if (game) {
-    res.status(200).send(game);
+    res.status(200).send({ roomID, url: game.url });
   } else {
     res.status(404).send("Game not found");
   }
@@ -83,8 +83,8 @@ router.post("/restart", async (req, res) => {
     }
   );
   const game = await response.json();
-  runningGames.push(game);
-  res.status(200).send(game);
+  runningGames[game.roomID] = game;
+  res.status(200).send({ roomID, url: game.url });
 });
 
 export default router;
