@@ -27,7 +27,7 @@ export function VotingScreen({
 
       <h1 className="text-4xl font-bold text-purple-300">Voting Screen</h1>
       <div className="text-center">
-        <h2 className="text-2xl font-semibold">Question: {voteQuestion}</h2>
+        <h2 className="text-2xl font-semibold">{voteQuestion}</h2>
       </div>
       <div className="flex justify-center items-center gap-4 w-full max-w-md">
         {voteAnswers.map((answer, index) => (

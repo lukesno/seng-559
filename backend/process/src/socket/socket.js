@@ -41,7 +41,8 @@ const fetchQuestions = async (roomID) => {
           content: `Can you please generate ${
             numPlayers * NUM_ROUNDS
           } prompts similar to the prompts from the Jackbox Party Pack Game Quiplash? 
-          Just provide the prompt, don't add any additional words to the response and do not ask if we want another prompt`,
+          Just provide the prompt as a string, don't add any additional words to the response and do not ask if we want another prompt.
+          Please do not number the prompts. Just seperate the prompt by a newline, I am trying to use this in a program which requires consistent outputs`,
         },
       ],
       model: "gpt-3.5-turbo",

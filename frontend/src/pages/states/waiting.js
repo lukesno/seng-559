@@ -10,8 +10,8 @@ export function WaitingScreen({
 }) {
   const navigate = useNavigate();
 
-  // Check if the current user is the leader and there are at least 2 users in the lobby
-  const canStartGame = isLeader && users.length >= 2;
+  // Check if the current user is the leader and there are at least 3 users in the lobby
+  const canStartGame = isLeader && users.length >= 3;
 
   return (
     <div className="min-h-screen text-white flex flex-col items-center justify-center space-y-5">
