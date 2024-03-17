@@ -9,12 +9,12 @@ import AppContext from "./AppContext";
 function App() {
   return (
     <Router>
-      <div className="App">
+      <div className='App bg-background bg-cover bg-center font-nunito'>
         <AppContext>
           <Routes>
-            <Route path="/" exact element={<Home />} />
-            <Route path="/Lobby" element={<Lobby />} />
-            <Route path="/Lobby/:id" element={<Lobby />} />
+            <Route path='/' exact element={<Home />} />
+            <Route path='/Lobby' element={<Lobby />} />
+            <Route path='/Lobby/:id' element={<Lobby />} />
           </Routes>
         </AppContext>
       </div>

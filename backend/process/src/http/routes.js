@@ -29,21 +29,20 @@ router.get("/health", (_, res) => {
     res.status(200).json({ games: 0 });
   }
 });
-  
 
-router.get("/restart", async (req,res) => {
-  const roomID = req.query.roomID
-  let game = Object.values(games).find(game => game.roomID === roomID);
+router.get("/restart", async (req, res) => {
+  const roomID = req.query.roomID;
+  const game = games[roomID];
   if (game) {
-    res.status(200).send(game)
-    return
+    res.status(200).send(game);
+    return;
   }
-  const retrievedGames = await retrieveGame(roomID)
-  if (retrievedGames[0]) {
-    retrievedGames[0].url = `${URL}:${PORT}`
-    console.log('retrievedGames[0]: ',  retrievedGames[0] )
-    games[roomID] = retrievedGames[0]
-    res.status(200).send(retrievedGames[0])
+  const retrievedGame = await retrieveGame(roomID);
+  if (retrievedGame) {
+    retrievedGame.url = `${URL}:${PORT}`;
+    console.log("retrievedGame: ", retrievedGame);
+    games[roomID] = retrievedGame;
+    res.status(200).send(retrievedGame);
   }
-})
+});
 export default router;

@@ -18,11 +18,11 @@ const io = new Server(server, {
     origin: "*",
   },
 });
-const onConnection = (socket) =>{
+
+function onConnection(socket) {
   registerHandlers(io, socket);
 }
-
-io.on("connection", onConnection)
+io.on("connection", onConnection);
 
 server.listen(PORT, () => {
   console.log(`${PORT}: Server is running on port ${PORT}`);

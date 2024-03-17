@@ -1,5 +1,4 @@
 import express from "express";
-import http from "http";
 import { BACKENDS_URL } from "../state.js";
 
 const router = express.Router();
@@ -68,13 +67,21 @@ router.post("/restart", async (req, res) => {
         console.error("health error: " + error);
       });
   }
-  console.log("processHealth: ", processHealth)
+
+  if (processHealth.length === 0) {
+    console.error("NO SERVERS ALIVE");
+    return;
+  }
+
   const sortedProcesses = processHealth.sort((a, b) => a.games - b.games);
   const { host, port } = sortedProcesses[0];
 
-  const response = await fetch(`http://${host}:${port}/restart?roomID=${roomID}`, {
-    method: "GET",
-  });
+  const response = await fetch(
+    `http://${host}:${port}/restart?roomID=${roomID}`,
+    {
+      method: "GET",
+    }
+  );
   const game = await response.json();
   runningGames.push(game);
   res.status(200).send(game);
