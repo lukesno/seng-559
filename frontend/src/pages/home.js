@@ -49,7 +49,7 @@ function Home() {
     <div className="h-[101vh] md:grid md:place-items-center">
       <div className="max-h-screen md:shadow-[inset_0_2px_4px_0_rgb(0,0,0,0.25)] rounded-lg p-1">
         <div className="max-h-screen p-8 rounded-lg md:shadow-[0_2px_4px_0_rgb(0,0,0,0.25)] grid grid-cols-1 grid-rows-8 md:grid-cols-3 md:grid-rows-3 place-items-center md:bg-primary/30">
-          <div className="row-start-2 row-span-1 col-span-1 md:row-start-auto md:col-span-3 place-self-center">
+          <div className="row-start-3 row-span-1 col-span-1 md:row-start-auto md:col-span-3 place-self-center">
             <img src={logo} className="place-self-center max-w-80" />
           </div>
           <div className="row-start-4 col-span-1 md:row-start-auto md:col-span-2 row-span-1 flex flex-col md:flex-row items-center">
