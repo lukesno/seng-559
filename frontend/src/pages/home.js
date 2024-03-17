@@ -46,13 +46,13 @@ function Home() {
   };
 
   return (
-    <div className="h-screen grid place-items-center">
-      <div className="shadow-[inset_0_2px_4px_0_rgb(0,0,0,0.25)] rounded-lg p-1">
-        <div className="p-8 rounded-lg shadow-[0_2px_4px_0_rgb(0,0,0,0.25)] grid grid-cols-3 grid-rows-3 place-items-center bg-primary/30">
-          <div className="col-span-3 row-span-1 place-self-center">
+    <div className="h-[101vh] md:grid md:place-items-center">
+      <div className="max-h-screen md:shadow-[inset_0_2px_4px_0_rgb(0,0,0,0.25)] rounded-lg p-1">
+        <div className="max-h-screen p-8 rounded-lg md:shadow-[0_2px_4px_0_rgb(0,0,0,0.25)] grid grid-cols-1 grid-rows-8 md:grid-cols-3 md:grid-rows-3 place-items-center md:bg-primary/30">
+          <div className="row-start-2 row-span-1 col-span-1 md:row-start-auto md:col-span-3 place-self-center">
             <img src={logo} className="place-self-center max-w-80" />
           </div>
-          <div className="col-span-2 row-span-1">
+          <div className="row-start-4 col-span-1 md:row-start-auto md:col-span-2 row-span-1 flex flex-col md:flex-row items-center">
             <label className="primary-text">Username: </label>
             <input
               className="primary-input rounded-xl ml-2"
@@ -64,45 +64,43 @@ function Home() {
               }}
             />
           </div>
-          <div className="col-span-2 row-span-1 flex justify-between gap-8">
-            <div className="flex flex-col">
-              <h2 className="primary-text">Create a Room</h2>
+          <div className="row-start-5 row-span-1 md:row-start-auto flex flex-col">
+            <h2 className="primary-text">Create a Room</h2>
+            <button
+              className="text-white px-6 py-2 h-10 rounded-full font-semibold transition duration-300 ease-in-out shadow-lg hover:shadow-xl bg-green-500 hover:bg-green-700"
+              onClick={create}
+            >
+              Create
+            </button>
+          </div>
+          <div className="row-start-6 md:row-start-auto row-span-1 flex flex-col items-center">
+            <h2 className="primary-text">Join a Room</h2>
+            <div className="rounded-xl overflow-hidden flex items-center h-10">
+              <input
+                className="primary-input w-28 h-full"
+                type="text"
+                placeholder="Room Code"
+                value={roomID}
+                onChange={(event) => {
+                  setRoomID(event.target.value);
+                }}
+                maxLength={4}
+              />
               <button
-                className="text-white px-6 py-2 rounded-full font-semibold transition duration-300 ease-in-out shadow-lg hover:shadow-xl bg-green-500 hover:bg-green-700"
-                onClick={create}
+                className="text-white px-6 py-2 font-semibold transition duration-300 ease-in-out shadow-lg hover:shadow-xl bg-green-500 hover:bg-green-700"
+                onClick={join}
               >
-                Create
+                Join
               </button>
             </div>
-            <div className="flex flex-col items-center">
-              <h2 className="primary-text">Join a Room</h2>
-              <div className="rounded-xl overflow-hidden">
-                <input
-                  className="primary-input inline-block w-28 h-full"
-                  type="text"
-                  placeholder="Room Code"
-                  value={roomID}
-                  onChange={(event) => {
-                    setRoomID(event.target.value);
-                  }}
-                  maxLength={4}
-                />
-                <button
-                  className="text-white px-6 py-2 font-semibold transition duration-300 ease-in-out shadow-lg hover:shadow-xl bg-green-500 hover:bg-green-700"
-                  onClick={join}
-                >
-                  Join
-                </button>
-              </div>
-              {error && (
-                <p className="text-red-500 uppercase font-bold text-s mt-5">
-                  {error}
-                </p>
-              )}
-            </div>
+            {error && (
+              <p className="text-red-500 uppercase font-bold text-s mt-5">
+                {error}
+              </p>
+            )}
           </div>
-          <div className="col-start-3 col-end-4 row-start-2 row-end-4 place-self-centerp-10">
-            <img className="w-48" src={kirby} />
+          <div className="row-start-7 row-span-2 md:col-start-3 md:col-end-4 md:row-start-2 md:row-end-4 place-self-centerp-10">
+            <img className="w-28 md:w-48" src={kirby} />
           </div>
         </div>
       </div>
