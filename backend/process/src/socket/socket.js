@@ -187,7 +187,6 @@ export function registerHandlers(io, socket) {
         roomID: roomID,
         isLeader: isLeader,
         score: 0,
-        socketID: socket.id,
       };
 
       addUser(socket.id, newUser);
@@ -211,7 +210,6 @@ export function registerHandlers(io, socket) {
       const game = games[roomID];
       const user = await retrieveUser(oldSocketID);
 
-      user.socketID = socket.id;
       await addUser(socket.id, user);
 
       game.sockets = game.sockets.map((socketID) => {
@@ -276,7 +274,7 @@ export function registerHandlers(io, socket) {
         answers[vote].votes += 1;
       }
 
-      if (game.responseCount === game.sockets.length) {
+      if (game.responseCount === game.sockets.length - 2) {
         clearInterval(timers[roomID]);
         game.sockets.forEach((socket) => {
           const user = users[socket];

@@ -8,7 +8,6 @@ const router = express.Router();
 router.get("/create", (_, res) => {
   const roomID = nanoid();
   const newGame = {
-    roomID: roomID,
     url: `${URL}:${PORT}`,
     sockets: [],
     gameState: "waiting",
@@ -19,7 +18,7 @@ router.get("/create", (_, res) => {
   };
 
   addGame(roomID, newGame);
-  res.status(200).json(newGame);
+  res.status(200).json({ roomID, url: newGame.url });
 });
 
 router.get("/health", (_, res) => {
@@ -42,7 +41,7 @@ router.get("/restart", async (req, res) => {
     retrievedGame.url = `${URL}:${PORT}`;
     console.log("retrievedGame: ", retrievedGame);
     games[roomID] = retrievedGame;
-    res.status(200).send(retrievedGame);
+    res.status(200).send({ roomID, url: retrievedGame.url });
   }
 });
 export default router;
