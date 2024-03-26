@@ -45,9 +45,10 @@ if (cluster.isPrimary) {
     else if (message && message.type === 'response') {
       // Send response to client
       const requestId = message.requestId;
+      const statusCode = parseInt(message.statusCode);
       const res = pendingRequests[requestId];
       if (res) {
-        res.status(200).send(message.body);
+        res.status(statusCode).send(message.body);
         delete pendingRequests[requestId]; // Remove request from pending
       } else {
         console.error('Response object not available');
@@ -59,9 +60,7 @@ if (cluster.isPrimary) {
   function initiateElection() {
     for (const id in cluster.workers) {
       cluster.workers[id].send({
-        type: "election",
-        workerId: parseInt(id),
-        leaderId: leaderId,
+        type: "election"
       });
     }
   }
@@ -70,13 +69,13 @@ if (cluster.isPrimary) {
   const router = express.Router();
   app.use(cors());
   app.use(express.json());
-  
+
   //Routes
   router.get('/test', (req, res) => {
     const requestId = v4(); // Generate a unique request ID
     if (leader) {
       pendingRequests[requestId] = res; // Store the response object with request ID
-      leader.send({ type: 'getRequest', url: req.url, method: req.method, headers: req.headers, requestId: requestId });
+      leader.send({ type: 'test-request', url: req.url, method: req.method, headers: req.headers, requestId: requestId });
     } else {
       console.error('No leader elected yet');
       res.status(500).send('Internal Server Error');
@@ -102,7 +101,7 @@ if (cluster.isPrimary) {
           console.error(error);
         });
     }
-  
+
     const sortedProcesses = processHealth.sort((a, b) => a.games - b.games);
     const { host, port } = sortedProcesses[0];
     const response = await fetch(`http://${host}:${port}/create`, {
@@ -112,7 +111,7 @@ if (cluster.isPrimary) {
     runningGames[data.roomID] = data;
     res.status(200).send(data);
   });
-  
+
   router.post("/join", (req, res) => {
     const { roomID } = req.body;
     const game = runningGames[roomID];
@@ -122,10 +121,10 @@ if (cluster.isPrimary) {
       res.status(404).send("Game not found");
     }
   });
-  
+
   router.post("/restart", async (req, res) => {
     const { roomID } = req.query;
-  
+
     // create a new game with same roomID
     const processHealth = [];
     for (const url of BACKENDS_URL) {
@@ -145,15 +144,15 @@ if (cluster.isPrimary) {
           console.error("health error: " + error);
         });
     }
-  
+
     if (processHealth.length === 0) {
       console.error("NO SERVERS ALIVE");
       return;
     }
-  
+
     const sortedProcesses = processHealth.sort((a, b) => a.games - b.games);
     const { host, port } = sortedProcesses[0];
-  
+
     const response = await fetch(
       `http://${host}:${port}/restart?roomID=${roomID}`,
       {
@@ -198,10 +197,10 @@ if (cluster.isPrimary) {
       );
       // Process the body of the POST request
       process.send({ status: 200, body: msg.body });
-    } else if (msg && msg.type === "getRequest" && msg.url) {
+    } else if (msg && msg.type === "test-request" && msg.url) {
       console.log(`Worker ${process.pid} received GET request: ${msg.method} ${msg.url}`);
       // Process the body of the GET request
-      process.send({ type: 'response', body: `Response from worker ${process.pid} for GET ${msg.url}`, requestId: msg.requestId });
+      process.send({ type: 'response', body: `Response from worker ${process.pid} for GET ${msg.url}`, statusCode: 200, requestId: msg.requestId });
     }
   });
 
