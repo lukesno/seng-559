@@ -49,6 +49,7 @@ if (cluster.isPrimary) {
         runningGames[data.roomID] = data;
         res.status(statusCode).send(data);
         delete pendingRequests[requestId]; // Remove request from pending
+        // Update cache of other workers
         for (const id in cluster.workers) {
           if (cluster.workers[id] !== leader) {
             cluster.workers[id].send({ type: "update-cache", data: data });
@@ -70,6 +71,7 @@ if (cluster.isPrimary) {
         const roomID = data.roomID;
         res.status(statusCode).send({ roomID, url: data.url });
         delete pendingRequests[requestId]; // Remove request from pending
+        // Update cache of other workers
         for (const id in cluster.workers) {
           if (cluster.workers[id] !== leader) {
             cluster.workers[id].send({ type: "update-cache", data: data });
