@@ -167,7 +167,7 @@ else {
     if (msg) {
       if (msg.type === "election") {
         // Return process ID
-        process.send({ type: "election", workerId: workerId });
+        process.send({ type: "election", workerId: process.pid });
       } else if (msg && msg.type === "election-end") {
         // Update leader ID
         leaderId = msg.leaderId;
