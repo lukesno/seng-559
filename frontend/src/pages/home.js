@@ -4,6 +4,7 @@ import Axios from "axios";
 import { useAppContext } from "../AppContext";
 import logo from "../assets/logo.svg";
 import kirby from "../assets/kirby.gif";
+import { LB_URL, LB_PORT } from "../state";
 
 function Home() {
   const navigate = useNavigate(); // Initialize useNavigate
@@ -17,7 +18,7 @@ function Home() {
 
   const create = async () => {
     try {
-      const response = await Axios.get("http://localhost:8080/create");
+      const response = await Axios.get(`${LB_URL}:${LB_PORT}/create`);
       const { roomID, url } = response.data;
       setRoomID(roomID);
       setRoomURL(url);
@@ -29,7 +30,7 @@ function Home() {
 
   const join = async () => {
     try {
-      const response = await Axios.post("http://localhost:8080/join", {
+      const response = await Axios.post(`${LB_URL}:${LB_PORT}/join`, {
         roomID,
       });
       const { url } = response.data;

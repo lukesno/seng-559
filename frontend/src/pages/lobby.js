@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { useAppContext } from "../AppContext";
 import Axios from "axios";
+import { LB_PORT, LB_URL } from "../state";
+
 // Screens
 import {
   WaitingScreen,
@@ -71,7 +73,7 @@ function Lobby() {
     deregisterHandlers();
     try {
       const response = await Axios.post(
-        `http://localhost:8080/restart?roomID=${roomID}`
+        `${LB_URL}:${LB_PORT}/restart?roomID=${roomID}`
       );
       const { url } = response.data;
       console.log(`new url: ${url}`);

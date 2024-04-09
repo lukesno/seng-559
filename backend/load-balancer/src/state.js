@@ -1,4 +1,4 @@
-const URL = "http://localhost";
+const URL = process.env.URL || "http://localhost";
 const PORT = process.env.PORT || 8080;
 
 // List of backend servers
