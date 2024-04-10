@@ -6,26 +6,7 @@ import cluster from "cluster";
 import { PORT, BACKENDS_URL } from "./state.js";
 import { v4 } from "uuid";
 
-import { networkInterfaces } from "os";
-const nets = networkInterfaces();
-const results = Object.create(null);
-
-
 if (cluster.isPrimary) {
-  for (const name of Object.keys(nets)) {
-    for (const net of nets[name]) {
-      // Skip over non-IPv4 and internal 
-      const familyV4Value = typeof net.family === 'string' ? 'IPv4' : 4;
-      if (net.family === familyV4Value && !net.internal) {
-        if (!results[name]) {
-          results[name] = [];
-        }
-        results[name].push(net.address);
-      }
-    }
-  }
-  const hostname = results["Wi-Fi"][0];
-
   // Fork workers.
   for (let i = 0; i < 2; i++) {
     cluster.fork();
@@ -159,7 +140,7 @@ if (cluster.isPrimary) {
   app.use("/", router);
   const server = http.createServer(app);
   server.listen(PORT, () => {
-    console.log(`Server is running on ${hostname}:${PORT}`);
+    console.log(`Server is running port ${PORT}`);
   });
 
   // Listen for exit event to handle leader crash
